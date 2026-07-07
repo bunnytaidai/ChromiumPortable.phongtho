@@ -1,0 +1,14 @@
+node_modules/
+**/node_modules/
+ProfileManager/profiles_data/
+ProfileManager/backups_data/
+Data/
+**/*.pma
+**/*.log
+**/*.journal
+**/*.db-wal
+**/*.db-shm
+**/Local Storage/
+**/Cache/
+**/Code Cache/
+**/GPUCache/
