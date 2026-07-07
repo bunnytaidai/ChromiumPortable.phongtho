@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Động Cơ Tự Động Hóa - Anti-Detect Browser</title>
+    <!-- Google Fonts & FontAwesome Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --bg-dark: #070a13;
+            --bg-card: rgba(15, 23, 42, 0.45);
+            --bg-glass: rgba(30, 41, 59, 0.3);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --neon-blue: #3b82f6;
+            --neon-cyan: #06b6d4;
+            --neon-green: #10b981;
+            --neon-red: #ef4444;
+            --neon-yellow: #f59e0b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --font-main: 'Outfit', sans-serif;
+            --font-code: 'Fira Code', monospace;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            font-family: var(--font-main);
+            background-image: radial-gradient(circle at 10% 20%, rgba(59, 130, 246, 0.05) 0%, transparent 40%),
+                              radial-gradient(circle at 90% 80%, rgba(6, 182, 212, 0.05) 0%, transparent 40%);
+            background-attachment: fixed;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 15px 30px;
+            background: rgba(15, 23, 42, 0.6);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 1.8rem;
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            filter: drop-shadow(0 0 8px rgba(6, 182, 212, 0.3));
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            from { transform: scale(1); filter: drop-shadow(0 0 2px rgba(6, 182, 212, 0.3)); }
+            to { transform: scale(1.08); filter: drop-shadow(0 0 10px rgba(6, 182, 212, 0.6)); }
+        }
+
+        .logo-area h1 {
+            margin: 0;
+            font-size: 1.3rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #ffffff, #94a3b8);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 8px 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+            transform: translateY(-1px);
+        }
+
+        /* Container chính chia vùng */
+        .dashboard-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 25px 30px;
+            flex-grow: 1;
+            box-sizing: border-box;
+            max-width: 1600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        /* SECTION A: GLOBAL STATUS HEADER */
+        .status-header-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.4);
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        .status-badge-area {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+
+        .led-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            padding: 6px 14px;
+            border-radius: 30px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            text-transform: uppercase;
+        }
+
+        .led-badge.stopped {
+            color: var(--neon-red);
+            background: rgba(239, 68, 68, 0.08);
+            border-color: rgba(239, 68, 68, 0.2);
+        }
+
+        .led-badge.booting {
+            color: var(--neon-yellow);
+            background: rgba(245, 158, 11, 0.08);
+            border-color: rgba(245, 158, 11, 0.2);
+            animation: blink 1s infinite alternate;
+        }
+
+        .led-badge.running {
+            color: var(--neon-green);
+            background: rgba(16, 185, 129, 0.08);
+            border-color: rgba(16, 185, 129, 0.2);
+            box-shadow: 0 0 10px rgba(16, 185, 129, 0.15);
+        }
+
+        @keyframes blink {
+            from { opacity: 0.6; }
+            to { opacity: 1; }
+        }
+
+        .info-grid {
+            display: flex;
+            gap: 25px;
+            flex-wrap: wrap;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .info-lbl {
+            font-size: 0.72rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-val {
+            font-size: 0.9rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .master-controls {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-master {
+            padding: 10px 24px;
+            font-family: var(--font-main);
+            font-weight: 700;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.2s ease;
+            border: none;
+            text-transform: uppercase;
+        }
+
+        .btn-start {
+            background: linear-gradient(135deg, var(--neon-blue), var(--neon-cyan));
+            color: white;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+        }
+
+        .btn-start:hover:not(:disabled) {
+            transform: translateY(-1.5px);
+            box-shadow: 0 6px 20px rgba(59, 130, 246, 0.55);
+        }
+
+        .btn-stop-force {
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.3);
+            color: #f87171;
+        }
+
+        .btn-stop-force:hover:not(:disabled) {
+            background: var(--neon-red);
+            color: white;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn-master:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+            box-shadow: none !important;
+            transform: none !important;
+        }
+
+        /* SECTION B: CONFIGURATION PANEL */
+        .config-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        @media (max-width: 1024px) {
+            .config-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .config-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 20px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .config-card h2 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 600;
+            color: #a5b4fc;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 10px;
+        }
+
+        .config-card h2 i {
+            color: var(--neon-cyan);
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        label {
+            font-size: 0.82rem;
+            font-weight: 500;
+            color: var(--text-secondary);
+        }
+
+        input[type="text"], select, textarea {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 8px 12px;
+            color: white;
+            font-family: var(--font-main);
+            font-size: 0.88rem;
+            outline: none;
+            transition: all 0.2s;
+            box-sizing: border-box;
+        }
+
+        input[type="text"]:focus, select:focus, textarea:focus {
+            border-color: var(--neon-blue);
+            box-shadow: 0 0 6px rgba(59, 130, 246, 0.2);
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        .code-textarea {
+            font-family: var(--font-code);
+            font-size: 0.8rem;
+            background: rgba(5, 8, 16, 0.6) !important;
+            color: #34d399 !important;
+        }
+
+        .input-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .checkbox-group input {
+            cursor: pointer;
+        }
+
+        .slider-container {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .slider-container input[type="range"] {
+            flex-grow: 1;
+            cursor: pointer;
+        }
+
+        .slider-val {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--neon-cyan);
+            min-width: 30px;
+            text-align: right;
+        }
+
+        /* Bảng danh sách hành động Locators */
+        .step-table-container {
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            overflow: hidden;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+            text-align: left;
+        }
+
+        th {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 10px 12px;
+            color: var(--text-secondary);
+            font-weight: 500;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        td {
+            padding: 8px 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+        }
+
+        .action-select-sm, .input-text-sm {
+            padding: 4px 8px !important;
+            font-size: 0.8rem !important;
+            width: 100%;
+        }
+
+        .btn-danger-sm {
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            color: #f87171;
+            padding: 4px 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.78rem;
+            transition: all 0.2s;
+        }
+
+        .btn-danger-sm:hover {
+            background: var(--neon-red);
+            color: white;
+        }
+
+        .btn-secondary {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border-color);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.82rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s;
+        }
+
+        .btn-secondary:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        /* SECTION C: REAL-TIME ACTIVITY TERMINAL */
+        .terminal-card {
+            background: #04060c;
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            display: flex;
+            flex-direction: column;
+            height: 300px;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.5);
+            overflow: hidden;
+        }
+
+        .terminal-header {
+            background: rgba(15, 23, 42, 0.8);
+            padding: 10px 20px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .terminal-title {
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #cbd5e1;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .terminal-title i {
+            color: var(--neon-green);
+        }
+
+        .terminal-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-terminal {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-secondary);
+            padding: 4px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: all 0.2s;
+        }
+
+        .btn-terminal:hover {
+            color: white;
+            border-color: rgba(255, 255, 255, 0.3);
+            background: rgba(255,255,255,0.02);
+        }
+
+        .terminal-body {
+            padding: 15px;
+            overflow-y: auto;
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            font-family: var(--font-code);
+            font-size: 0.78rem;
+            line-height: 1.4;
+            box-sizing: border-box;
+            background: #020306;
+        }
+
+        /* Luật màu sắc nhật ký */
+        .log-row {
+            display: flex;
+            gap: 8px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        .log-time {
+            color: #64748b;
+            flex-shrink: 0;
+        }
+
+        .log-module {
+            font-weight: 600;
+            flex-shrink: 0;
+            min-width: 80px;
+            text-align: right;
+        }
+
+        .log-type {
+            font-weight: 500;
+            flex-shrink: 0;
+        }
+
+        .log-message {
+            color: #e2e8f0;
+        }
+
+        /* Color classes */
+        .color-network { color: var(--neon-yellow) !important; }
+        .color-input { color: var(--neon-green) !important; }
+        .color-env { color: var(--neon-cyan) !important; }
+        .color-system { color: #f472b6 !important; }
+        .color-cdp { color: #818cf8 !important; }
+        .color-locator { color: #c084fc !important; }
+        .color-error { color: var(--neon-red) !important; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo-area">
+            <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+            <div>
+                <h1>Động Cơ Tự Động Hóa Trình Duyệt</h1>
+                <div style="font-size: 0.7rem; color: var(--text-secondary);">Hệ thống điều khiển chống phát hiện bot v2.10.2</div>
+            </div>
+        </div>
+        <div class="header-nav">
+            <a href="/" class="nav-btn"><i class="fa-solid fa-arrow-left"></i> Quay lại Dashboard</a>
+        </div>
+    </header>
+
+    <div class="dashboard-container">
+        <!-- SECTION A: GLOBAL STATUS HEADER -->
+        <div class="status-header-card">
+            <div class="status-badge-area">
+                <div id="status-badge" class="led-badge stopped">
+                    <span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; margin-right:4px;"></span>
+                    🔴 Stopped
+                </div>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <div class="info-lbl">Địa chỉ mục tiêu</div>
+                    <div id="status-url" class="info-val">N/A</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-lbl">GPS Giả lập</div>
+                    <div id="status-location" class="info-val">N/A</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-lbl">Profile Vân tay</div>
+                    <div id="status-profile" class="info-val">N/A</div>
+                </div>
+            </div>
+
+            <div class="master-controls">
+                <button id="btn-start" class="btn-master btn-start"><i class="fa-solid fa-play"></i> Start Browser</button>
+                <button id="btn-stop" class="btn-master btn-stop-force" disabled><i class="fa-solid fa-stop"></i> Force Stop</button>
+            </div>
+        </div>
+
+        <!-- SECTION B: CONFIGURATION PANEL -->
+        <div class="config-grid">
+            
+            <!-- Cột trái: Môi trường, CDP, Nhập liệu, Mạng -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Environment Settings -->
+                <div class="config-card">
+                    <h2><i class="fa-solid fa-earth-americas"></i> Environment Spoofing (Giả lập vân tay & GPS)</h2>
+                    <div class="form-group">
+                        <label for="c-target-url">Đường dẫn trang web mục tiêu (Target URL)</label>
+                        <input type="text" id="c-target-url" value="https://google.com">
+                    </div>
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="c-device-preset">Thiết bị mô phỏng (Device Preset)</label>
+                            <select id="c-device-preset">
+                                <option value="desktop">Máy tính Máy trạm (Windows Desktop)</option>
+                                <option value="iphone">Apple iPhone 14 Pro</option>
+                                <option value="android">Samsung Galaxy S22</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="c-user-agent">User Agent (Nếu để trống sẽ tự sinh theo thiết bị)</label>
+                            <input type="text" id="c-user-agent" placeholder="Mặc định tự động...">
+                        </div>
+                    </div>
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="c-latitude">GPS Vĩ độ (Latitude)</label>
+                            <input type="text" id="c-latitude" value="21.0278">
+                        </div>
+                        <div class="form-group">
+                            <label for="c-longitude">GPS Kinh độ (Longitude)</label>
+                            <input type="text" id="c-longitude" value="105.8342">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- CDP Settings -->
+                <div class="config-card">
+                    <h2><i class="fa-solid fa-gauge-high"></i> CDPSession (Mô phỏng phần cứng & Mạng thô)</h2>
+                    <div class="form-group">
+                        <label>Giới hạn tốc độ xử lý CPU (CPU Throttling)</label>
+                        <div class="slider-container">
+                            <input type="range" id="c-cpu-throttling" min="1" max="6" value="1">
+                            <span id="c-cpu-throttling-val" class="slider-val">1x</span>
+                        </div>
+                        <span style="font-size:0.7rem; color:var(--text-secondary);">* Giảm hiệu năng CPU xuống X lần để mô phỏng máy cấu hình yếu.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="c-network-speed">Tốc độ kết nối mạng giả lập</label>
+                        <select id="c-network-speed">
+                            <option value="none">Không giới hạn (Tốc độ tối đa)</option>
+                            <option value="4g">Mạng di động 4G tiêu chuẩn (10 Mbps)</option>
+                            <option value="fast3g">Mạng 3G Nhanh (Fast 3G - 1.6 Mbps)</option>
+                            <option value="slow3g">Mạng 3G Chậm (Slow 3G - 400 Kbps)</option>
+                            <option value="offline">Ngoại tuyến (Offline)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Physical Input Settings -->
+                <div class="config-card">
+                    <h2><i class="fa-solid fa-keyboard"></i> Physical Input Emulator (Giả lập nhập liệu phần cứng)</h2>
+                    <div class="input-row">
+                        <div class="form-group">
+                            <label for="c-min-delay">Trễ gõ tối thiểu (ms)</label>
+                            <input type="text" id="c-min-delay" value="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="c-max-delay">Trễ gõ tối đa (ms)</label>
+                            <input type="text" id="c-max-delay" value="150">
+                        </div>
+                    </div>
+                    <div class="input-row" style="margin-top: 5px;">
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="c-human-click" checked>
+                            <label for="c-human-click">Mô phỏng rê chuột thực tế (Bezier Curves / Nhiễu tọa độ)</label>
+                        </div>
+                        <div class="checkbox-group">
+                            <input type="checkbox" id="c-human-type" checked>
+                            <label for="c-human-type">Mô phỏng gõ phím ngẫu nhiên từng ký tự</label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Traffic & Network Interceptor -->
+                <div class="config-card">
+                    <h2><i class="fa-solid fa-shield-halved"></i> Traffic Interceptor & API Mocking (Đánh chặn mạng)</h2>
+                    <div class="form-group">
+                        <label>Bộ lọc chặn tài nguyên để tăng tốc độ tải trang</label>
+                        <div style="display: flex; gap: 20px; margin-top: 5px;">
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="c-block-images">
+                                <label for="c-block-images">Chặn tải Ảnh</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="c-block-css">
+                                <label for="c-block-css">Chặn tải Stylesheet (CSS)</label>
+                            </div>
+                            <div class="checkbox-group">
+                                <input type="checkbox" id="c-block-media">
+                                <label for="c-block-media">Chặn tải Media/Font</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="c-mock-rules">Quy tắc giả lập API (Mock API Rules JSON)</label>
+                        <textarea id="c-mock-rules" rows="4" class="code-textarea" placeholder='[
+  {
+    "urlPattern": "/api/user/info",
+    "status": 200,
+    "mockData": { "name": "Fake User", "role": "admin" }
+  }
+]'></textarea>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Cột phải: Tiêm mã JS, Kịch bản hành động Locator -->
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+                
+                <!-- Injection Settings -->
+                <div class="config-card">
+                    <h2><i class="fa-solid fa-code"></i> Deep Code Injector (Tiêm mã JavaScript sâu)</h2>
+                    <div class="form-group">
+                        <label for="c-preload-js">Mã tiêm sớm (Pre-load JS - Chạy trước khi DOM tải)</label>
+                        <textarea id="c-preload-js" rows="4" class="code-textarea" placeholder="console.log('Tiêm mã sớm thành công!');
+Object.defineProperty(navigator, 'languages', { get: () => ['vi-VN', 'vi'] });"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label for="c-post-load-js">Mã tiêm muộn (Post-load JS - Chạy ngay sau khi trang tải xong)</label>
+                        <textarea id="c-post-load-js" rows="4" class="code-textarea" placeholder="document.body.style.backgroundColor = 'darkblue';
+// Trả về kết quả
+document.title;"></textarea>
+                    </div>
+                </div>
+
+                <!-- Locator Step Builder -->
+                <div class="config-card" style="flex-grow: 1;">
+                    <h2><i class="fa-solid fa-list-check"></i> Smart Locators Action Builder (Chuỗi hành động thông minh)</h2>
+                    
+                    <div class="step-table-container">
+                        <table id="step-table">
+                            <thead>
+                                <tr>
+                                    <th style="width: 25%;">Thao tác (Action)</th>
+                                    <th style="width: 40%;">Định vị (Selector)</th>
+                                    <th style="width: 25%;">Giá trị nhập (Value)</th>
+                                    <th style="width: 10%; text-align: center;">Xóa</th>
+                                </tr>
+                            </thead>
+                            <tbody id="step-list-body">
+                                <!-- Chứa các bước mẫu -->
+                                <tr>
+                                    <td>
+                                        <select class="action-select-sm">
+                                            <option value="type" selected>Type (Nhập chữ)</option>
+                                            <option value="click">Click (Nhấp chuột)</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" class="input-text-sm" value="textarea[name='q']" placeholder="Selector"></td>
+                                    <td><input type="text" class="input-text-sm" value="Puppeteer Smart Locators API" placeholder="Value"></td>
+                                    <td style="text-align: center;"><button class="btn-danger-sm" onclick="removeStepRow(this)"><i class="fa-solid fa-trash"></i></button></td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <select class="action-select-sm">
+                                            <option value="type">Type (Nhập chữ)</option>
+                                            <option value="click" selected>Click (Nhấp chuột)</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text" class="input-text-sm" value="input[type='submit'], button[type='submit']" placeholder="Selector"></td>
+                                    <td><input type="text" class="input-text-sm" value="" placeholder="N/A" disabled></td>
+                                    <td style="text-align: center;"><button class="btn-danger-sm" onclick="removeStepRow(this)"><i class="fa-solid fa-trash"></i></button></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <button type="button" class="btn-secondary" onclick="addStepRow()"><i class="fa-solid fa-plus"></i> Thêm bước hành động</button>
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+
+        <!-- SECTION C: REAL-TIME ACTIVITY TERMINAL -->
+        <div class="terminal-card">
+            <div class="terminal-header">
+                <div class="terminal-title">
+                    <i class="fa-solid fa-square-terminal"></i>
+                    <span>Real-Time Activity Terminal (Log Console)</span>
+                </div>
+                <div class="terminal-controls">
+                    <button class="btn-terminal" onclick="clearTerminalLogs()"><i class="fa-solid fa-trash"></i> Clear Logs</button>
+                    <button class="btn-terminal" onclick="exportTerminalLogs()"><i class="fa-solid fa-file-export"></i> Export Logs</button>
+                </div>
+            </div>
+            <div id="terminal-body" class="terminal-body">
+                <!-- Chứa các dòng logs -->
+                <div class="log-row"><span class="log-time">[Hệ thống]</span> <span class="log-message" style="color:var(--text-secondary);">Sẵn sàng nhận kết nối từ Động cơ tự động hóa...</span></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- SCRIPT ĐIỀU KHIỂN & ĐỒNG BỘ SSE -->
+    <script>
+        // Xử lý kéo thanh trượt CPU Throttling
+        const cpuSlider = document.getElementById('c-cpu-throttling');
+        const cpuVal = document.getElementById('c-cpu-throttling-val');
+        cpuSlider.addEventListener('input', (e) => {
+            cpuVal.innerText = e.target.value + 'x';
+        });
+
+        // Tự động vô hiệu hóa trường Value của kịch bản nếu chọn hành động Click
+        document.getElementById('step-table').addEventListener('change', (e) => {
+            if (e.target.classList.contains('action-select-sm')) {
+                const tr = e.target.closest('tr');
+                const valInput = tr.querySelectorAll('input')[1];
+                if (e.target.value === 'click') {
+                    valInput.value = '';
+                    valInput.disabled = true;
+                    valInput.placeholder = 'N/A';
+                } else {
+                    valInput.disabled = false;
+                    valInput.placeholder = 'Value';
+                }
+            }
+        });
+
+        // Xóa một hàng bước hành động
+        function removeStepRow(btn) {
+            const tr = btn.closest('tr');
+            tr.remove();
+        }
+
+        // Thêm một hàng bước hành động
+        function addStepRow() {
+            const tbody = document.getElementById('step-list-body');
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+                <td>
+                    <select class="action-select-sm">
+                        <option value="click">Click (Nhấp chuột)</option>
+                        <option value="type" selected>Type (Nhập chữ)</option>
+                    </select>
+                </td>
+                <td><input type="text" class="input-text-sm" placeholder="Selector"></td>
+                <td><input type="text" class="input-text-sm" placeholder="Value"></td>
+                <td style="text-align: center;"><button class="btn-danger-sm" onclick="removeStepRow(this)"><i class="fa-solid fa-trash"></i></button></td>
+            `;
+            tbody.appendChild(tr);
+        }
+
+        // Thu thập cấu hình từ giao diện để gửi lên backend
+        function getConfiguration() {
+            const settings = {
+                targetUrl: document.getElementById('c-target-url').value,
+                devicePreset: document.getElementById('c-device-preset').value,
+                userAgent: document.getElementById('c-user-agent').value,
+                latitude: document.getElementById('c-latitude').value,
+                longitude: document.getElementById('c-longitude').value,
+                cpuThrottling: document.getElementById('c-cpu-throttling').value,
+                networkSpeed: document.getElementById('c-network-speed').value,
+                minDelay: document.getElementById('c-min-delay').value,
+                maxDelay: document.getElementById('c-max-delay').value,
+                humanClick: document.getElementById('c-human-click').checked,
+                humanType: document.getElementById('c-human-type').checked,
+                blockImages: document.getElementById('c-block-images').checked,
+                blockCSS: document.getElementById('c-block-css').checked,
+                blockMedia: document.getElementById('c-block-media').checked,
+                mockRulesText: document.getElementById('c-mock-rules').value,
+                preloadJs: document.getElementById('c-preload-js').value,
+                postloadJs: document.getElementById('c-post-load-js').value
+            };
+
+            const steps = [];
+            const rows = document.querySelectorAll('#step-list-body tr');
+            rows.forEach(row => {
+                const action = row.querySelector('.action-select-sm').value;
+                const inputs = row.querySelectorAll('.input-text-sm');
+                const selector = inputs[0].value;
+                const inputValue = inputs[1].value;
+                if (selector) {
+                    steps.push({ action, selector, inputValue });
+                }
+            });
+
+            return { settings, steps };
+        }
+
+        // ĐIỀU KHIỂN SSE & TRUYỀN DỮ LIỆU REAL-TIME
+        const statusBadge = document.getElementById('status-badge');
+        const statusUrl = document.getElementById('status-url');
+        const statusLocation = document.getElementById('status-location');
+        const statusProfile = document.getElementById('status-profile');
+        const btnStart = document.getElementById('btn-start');
+        const btnStop = document.getElementById('btn-stop');
+        const terminalBody = document.getElementById('terminal-body');
+
+        // Hàm nối luồng SSE nhận Logs & Status
+        function connectLogsSSE() {
+            const eventSource = new EventSource('/api/automation/logs');
+
+            eventSource.onmessage = function(event) {
+                const log = JSON.parse(event.data);
+                appendLogToTerminal(log);
+            };
+
+            eventSource.addEventListener('status', function(event) {
+                const data = JSON.parse(event.data);
+                updateUIStatus(data);
+            });
+
+            eventSource.onerror = function() {
+                setTimeout(connectLogsSSE, 3000); // Tự động kết nối lại nếu bị đứt đường truyền
+            };
+        }
+
+        function appendLogToTerminal(log) {
+            const row = document.createElement('div');
+            row.className = 'log-row';
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.innerText = `[${log.timestamp}]`;
+
+            const moduleSpan = document.createElement('span');
+            moduleSpan.className = `log-module color-${log.module.toLowerCase()}`;
+            moduleSpan.innerText = `[${log.module}]`;
+
+            const typeSpan = document.createElement('span');
+            // Gán lớp lỗi nếu log ở dạng ERROR hoặc BLOCKED/MOCKED
+            const typeClass = (log.type === 'ERROR' || log.type === 'BLOCKED') ? 'color-error' : `color-${log.module.toLowerCase()}`;
+            typeSpan.className = `log-type ${typeClass}`;
+            typeSpan.innerText = `[${log.type}]`;
+
+            const msgSpan = document.createElement('span');
+            msgSpan.className = 'log-message';
+            msgSpan.innerText = ` - ${log.message}`;
+
+            row.appendChild(timeSpan);
+            row.appendChild(moduleSpan);
+            row.appendChild(typeSpan);
+            row.appendChild(msgSpan);
+
+            terminalBody.appendChild(row);
+            terminalBody.scrollTop = terminalBody.scrollHeight; // Tự động cuộn xuống dưới cùng
+        }
+
+        function updateUIStatus(data) {
+            // Cập nhật thẻ hiển thị LED
+            statusBadge.className = 'led-badge ' + data.status;
+            if (data.status === 'stopped') {
+                statusBadge.innerHTML = `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; margin-right:4px;"></span>🔴 Stopped`;
+                btnStart.disabled = false;
+                btnStop.disabled = true;
+            } else if (data.status === 'booting') {
+                statusBadge.innerHTML = `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; margin-right:4px;"></span>🟡 Booting`;
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+            } else if (data.status === 'running') {
+                statusBadge.innerHTML = `<span style="display:inline-block; width:8px; height:8px; border-radius:50%; background:currentColor; margin-right:4px;"></span>🟢 Running`;
+                btnStart.disabled = true;
+                btnStop.disabled = false;
+            }
+
+            statusUrl.innerText = data.targetUrl || 'N/A';
+            statusLocation.innerText = data.mockedLocation || 'N/A';
+            statusProfile.innerText = data.activeProfile || 'N/A';
+        }
+
+        // Các hành động nút điều khiển
+        btnStart.addEventListener('click', async () => {
+            const config = getConfiguration();
+            
+            try {
+                const response = await fetch('/api/automation/start', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(config)
+                });
+                const result = await response.json();
+                if (!result.success) {
+                    alert('Lỗi: ' + result.error);
+                }
+            } catch (err) {
+                alert('Không thể kết nối đến máy chủ.');
+            }
+        });
+
+        btnStop.addEventListener('click', async () => {
+            try {
+                const response = await fetch('/api/automation/stop', {
+                    method: 'POST'
+                });
+                const result = await response.json();
+                if (!result.success) {
+                    alert('Lỗi: ' + result.error);
+                }
+            } catch (err) {
+                alert('Không thể kết nối đến máy chủ.');
+            }
+        });
+
+        // Xóa log terminal
+        async function clearTerminalLogs() {
+            try {
+                await fetch('/api/automation/clear-logs', { method: 'POST' });
+                terminalBody.innerHTML = '';
+            } catch(e) {}
+        }
+
+        // Xuất file log
+        function exportTerminalLogs() {
+            let logText = "";
+            const rows = terminalBody.querySelectorAll('.log-row');
+            rows.forEach(r => {
+                logText += r.innerText + "\n";
+            });
+
+            if (!logText.trim()) {
+                alert('Không có nhật ký nào để xuất.');
+                return;
+            }
+
+            const blob = new Blob([logText], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `automation_logs_${Date.now()}.txt`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        // Khởi động kết nối SSE ngay khi mở trang
+        connectLogsSSE();
+    </script>
+</body>
+</html>

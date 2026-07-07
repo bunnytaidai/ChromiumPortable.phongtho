@@ -1,0 +1,1688 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bảng Điều Khiển Chromium Profile</title>
+    <!-- Nhap font chu Inter hien dai -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Nhap FontAwesome bieu tuong -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Nhap Leaflet.js CSS de dung ban do chon vi tri -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <!-- Nhap Leaflet.js Javascript -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="logo-area">
+                <i class="fa-solid fa-user-shield logo-icon"></i>
+                <h2>Anti-Profile</h2>
+                <span class="version-tag">v3.4.3-v2.10.0</span>
+            </div>
+            <nav class="nav-menu">
+                <a href="#" class="nav-item active" id="menu-profiles"><i class="fa-solid fa-users"></i> Quản lý Profile (Hồ sơ trình duyệt)</a>
+                <a href="#" class="nav-item" id="menu-backups"><i class="fa-solid fa-database"></i> Quản lý Bản sao lưu (Backup)</a>
+                <a href="#" class="nav-item" id="menu-scripts"><i class="fa-solid fa-scroll"></i> Kịch bản hành động (Tự động hóa)</a>
+                <a href="#" class="nav-item" id="menu-campaigns"><i class="fa-solid fa-cubes"></i> Chiến dịch đa luồng (Chạy song song)</a>
+                <a href="#" class="nav-item" id="menu-mail"><i class="fa-solid fa-envelope"></i> Quản lý Mail tạm thời</a>
+                <a href="#" class="nav-item" id="menu-extensions"><i class="fa-solid fa-puzzle-piece"></i> Tiện ích mở rộng (Extensions)</a>
+                <a href="#" class="nav-item" id="menu-settings"><i class="fa-solid fa-gear"></i> Cấu hình chung (Cài đặt API)</a>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="system-status">
+                    <span class="status-dot online"></span>
+                    <p>RABBIT: Đang hoạt động</p>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Content Area -->
+        <main class="main-content">
+            
+            <!-- SECTION 1: QUẢN LÝ PROFILES -->
+            <div class="tab-pane active" id="pane-profiles">
+                <header class="main-header">
+                    <div class="header-title">
+                        <h1>Danh sách Trình duyệt Profile</h1>
+                        <p>Quản lý các thông số thiết bị độc lập và chống rò rỉ IP</p>
+                    </div>
+                    <div style="display: flex; gap: 10px;">
+                        <button class="btn btn-secondary" id="btn-sync-all-status" title="Quét và đồng bộ trạng thái thực tế của toàn bộ profile">
+                            <i class="fa-solid fa-arrows-rotate"></i> Đồng bộ trạng thái
+                        </button>
+                        <button class="btn btn-primary" id="btn-create-profile">
+                            <i class="fa-solid fa-plus"></i> Tạo Profile Mới
+                        </button>
+                    </div>
+                </header>
+
+                <section class="profiles-section">
+                    <div class="card card-table">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tên Profile</th>
+                                        <th>Trạng thái</th>
+                                        <th>Thiết bị (User-Agent)</th>
+                                        <th>Cấu hình Proxy</th>
+                                        <th>Múi giờ & Vị trí</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="profile-list-body">
+                                    <tr>
+                                        <td colspan="6" class="text-center loading-row">
+                                            <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải dữ liệu...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+ 
+            <!-- SECTION BACKUPS: QUẢN LÝ BẢN SAO LƯU -->
+            <div class="tab-pane" id="pane-backups" style="display: none;">
+                <header class="main-header">
+                    <div class="header-title">
+                        <h1>Quản lý Bản sao lưu (Profiles Backup)</h1>
+                        <p>Theo dõi, phục hồi và kiểm tra trạng thái live/die của tài khoản & proxy</p>
+                    </div>
+                </header>
+
+                <div class="backups-control-bar" style="display: flex; gap: 10px; margin-bottom: 15px; align-items: center; padding: 0 10px;">
+                    <button class="btn btn-danger" onclick="deleteSelectedBackups()"><i class="fa-solid fa-trash"></i> Xóa Bản Sao Lưu Đã Chọn</button>
+                    <button class="btn btn-secondary" onclick="exportSelectedBackupsTxt()"><i class="fa-solid fa-file-export"></i> Xuất File TXT (.txt)</button>
+                    <button class="btn btn-secondary" onclick="triggerImportBackupsTxt()"><i class="fa-solid fa-file-import"></i> Nhập Từ File TXT (.txt)</button>
+                    <input type="file" id="import-backups-file-input" style="display: none;" onchange="importBackupsTxt(event)" accept=".txt">
+                </div>
+
+                <section class="backups-section">
+                    <div class="card card-table">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width: 40px; text-align: center;"><input type="checkbox" id="backup-select-all" onchange="selectAllBackups(this.checked)" style="cursor: pointer;"></th>
+                                        <th style="width: 50px; text-align: center;">STT</th>
+                                        <th>Tên Backup</th>
+                                        <th>Trạng thái (Proxy/Acc)</th>
+                                        <th>Thông số Proxy</th>
+                                        <th>Thông tin Tài khoản (Nick | Pass | 2FA)</th>
+                                        <th>Dữ liệu Cookie</th>
+                                        <th>Ngày tạo</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="backup-list-body">
+                                    <tr>
+                                        <td colspan="9" class="text-center loading-row">
+                                            <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải dữ liệu...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- SECTION CAPTURED RESOURCES: TÀI NGUYÊN THU LƯU TỪ LUỒNG CHẠY -->
+                <header class="main-header" style="margin-top: 40px; margin-bottom: 20px;">
+                    <div class="header-title">
+                        <h2 style="font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent;"><i class="fa-solid fa-file-invoice" style="color: #6366f1; margin-right: 8px;"></i> Tài nguyên thu lưu từ luồng chạy</h2>
+                        <p style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 4px;">Tự động thu thập tài khoản, mật khẩu, email ảo, số điện thoại và cookie sau khi luồng chạy kịch bản hoàn thành</p>
+                    </div>
+                    <div>
+                        <a href="/api/captured_resources/export" class="btn btn-secondary" style="text-decoration: none;">
+                            <i class="fa-solid fa-file-export"></i> Xuất file văn bản (.txt)
+                        </a>
+                    </div>
+                </header>
+
+                <section class="captured-resources-section">
+                    <div class="card card-table">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Dịch vụ</th>
+                                        <th>Tài khoản (ID)</th>
+                                        <th>Mật khẩu</th>
+                                        <th>Email / Pass Email</th>
+                                        <th>Điện thoại</th>
+                                        <th>Cookie</th>
+                                        <th>Ngày thu thập</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="resource-list-body">
+                                    <tr>
+                                        <td colspan="8" class="text-center loading-row">
+                                            <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải dữ liệu...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- SECTION 2: KỊCH BẢN HÀNH ĐỘNG (SCRIPTS) -->
+            <div class="tab-pane" id="pane-scripts" style="display: none;">
+                <header class="main-header">
+                    <div class="header-title">
+                        <h1>Kịch bản Hành động (Automation Scripts)</h1>
+                        <p>Thiết lập chuỗi hành động mô phỏng người thật chạy tự động</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-create-script">
+                        <i class="fa-solid fa-plus"></i> Tạo Kịch bản Mới
+                    </button>
+                </header>
+
+                <section class="scripts-section" style="display: flex; gap: 24px; align-items: flex-start;">
+                    <!-- Cot trai: Bang danh sach kich ban -->
+                    <div class="card card-table" style="flex: 2; width: 100%;">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tên kịch bản</th>
+                                        <th>Số bước</th>
+                                        <th>Nội dung các bước hành động</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="script-list-body">
+                                    <!-- Du lieu load bang JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Cot phai: Trợ lý Kịch bản AI Gemini Chatbot -->
+                    <div class="card chatbot-ai-card" style="flex: 1; min-width: 350px; height: 600px; display: flex; flex-direction: column; background: var(--bg-card); backdrop-filter: blur(12px); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);">
+                        <div style="border-bottom: 1px solid var(--border-color); padding-bottom: 12px; margin-bottom: 12px; flex-shrink: 0;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0; margin-bottom: 6px;">
+                                <h3 style="font-size: 1.1rem; color: #818cf8; display: flex; align-items: center; gap: 8px; margin: 0;">
+                                    <i class="fa-solid fa-robot"></i> Trợ lý Kịch bản AI Gemini Pro
+                                </h3>
+                                <span id="ai-gemini-quota-badge" style="font-size: 0.7rem; padding: 2px 8px; border-radius: 20px; font-weight: 600; display: inline-flex; align-items: center; gap: 4px; background: rgba(255,255,255,0.05); color: #cbd5e1; border: 1px solid rgba(255,255,255,0.1);">
+                                    <i class="fa-solid fa-circle-notch fa-spin"></i> Check...
+                                </span>
+                            </div>
+                            <p style="font-size: 0.72rem; color: var(--text-secondary); line-height: 1.4; margin-top: 4px; margin-bottom: 0;">
+                                Hỏi đáp liên tục về kịch bản hành động, tối ưu mã nguồn và sửa lỗi trực quan.
+                            </p>
+                        </div>
+                        
+                        <!-- Lựa chọn Kịch bản & Mô hình -->
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; flex-shrink: 0;">
+                            <div class="form-group">
+                                <label for="ai-script-select" style="font-size: 0.75rem; color: #a5b4fc; font-weight: 600; display: block; margin-bottom: 4px;">Kịch bản kích hoạt:</label>
+                                <select id="ai-script-select" onchange="handleAiScriptSelectChange()" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(0,0,0,0.25); color: white; font-size: 0.78rem;">
+                                    <option value="">-- Chọn Kịch bản --</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="ai-gemini-model" style="font-size: 0.75rem; color: #a5b4fc; font-weight: 600; display: block; margin-bottom: 4px;">Mô hình AI:</label>
+                                <select id="ai-gemini-model" style="width: 100%; padding: 6px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(0,0,0,0.25); color: white; font-size: 0.78rem;">
+                                    <option value="gemini-2.0-flash" selected>Gemini 2.0 Flash</option>
+                                    <option value="gemini-2.5-flash">Gemini 2.5 Flash</option>
+                                    <option value="gemini-1.5-pro">Gemini 1.5 Pro</option>
+                                    <option value="gemini-1.5-flash">Gemini 1.5 Flash</option>
+                                </select>
+                            </div>
+                        </div>
+                        
+                        <!-- Khu vực Lịch sử Chatbot -->
+                        <div id="ai-chat-history" style="flex-grow: 1; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; display: flex; flex-direction: column; gap: 10px; margin-bottom: 8px;">
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; margin: auto 0; padding: 20px;">
+                                <i class="fa-solid fa-comments" style="font-size: 1.5rem; color:#818cf8; margin-bottom: 8px; display:block;"></i>
+                                Hãy chọn kịch bản và gửi tin nhắn hoặc chọn gợi ý bên dưới để bắt đầu trao đổi về code!
+                            </div>
+                        </div>
+
+                        <!-- Gợi ý câu hỏi nhanh (Suggestion Chips) -->
+                        <div id="chat-suggestions" style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; flex-shrink: 0;">
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="sendSuggestedPrompt('Giải thích kịch bản này làm gì')" style="font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color:#cbd5e1; cursor:pointer;">💡 Giải thích kịch bản</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="sendSuggestedPrompt('Tìm lỗi sai và tối ưu tốc độ chạy')" style="font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color:#cbd5e1; cursor:pointer;">⚡ Tối ưu kịch bản</button>
+                            <button type="button" class="btn btn-sm btn-outline-secondary" onclick="sendSuggestedPrompt('Thêm bước giải captcha cho kịch bản này')" style="font-size: 0.65rem; padding: 3px 8px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1); background: rgba(255,255,255,0.03); color:#cbd5e1; cursor:pointer;">🧩 Thêm Captcha</button>
+                        </div>
+
+                        <!-- Khung Nhập tin nhắn -->
+                        <div style="display: flex; gap: 8px; align-items: center; flex-shrink: 0; border-top: 1px solid var(--border-color); padding-top: 8px;">
+                            <textarea id="ai-chat-input" placeholder="Hỏi AI hoặc yêu cầu sửa kịch bản..." style="flex-grow: 1; height: 38px; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white; font-size: 0.8rem; resize: none; outline: none; line-height: 1.3;" onkeydown="handleChatInputKeyDown(event)"></textarea>
+                            <button type="button" class="btn btn-primary" id="btn-chat-send" onclick="sendChatMessage()" style="padding: 0 14px; height: 38px; display:flex; align-items:center; justify-content:center;">
+                                <i class="fa-solid fa-paper-plane"></i>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- SECTION 3: CHIẾN DỊCH ĐA LUỒNG (CAMPAIGNS) -->
+            <div class="tab-pane" id="pane-campaigns" style="display: none;">
+                <header class="main-header">
+                    <div class="header-title">
+                        <h1>Chiến dịch Đa luồng (Multi-threading Campaigns)</h1>
+                        <p>Tự động hóa luân phiên luồng chạy, xoay vòng proxy và tự tạo mới profile vượt spam</p>
+                    </div>
+                    <button class="btn btn-primary" id="btn-create-campaign">
+                        <i class="fa-solid fa-plus"></i> Tạo Chiến dịch Mới
+                    </button>
+                </header>
+
+                <section class="campaigns-section">
+                    <div class="card card-table">
+                        <div class="table-responsive">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Tên Chiến dịch</th>
+                                        <th>Trạng thái</th>
+                                        <th>Quy mô (Số luồng / Tổng số)</th>
+                                        <th>Kịch bản hành động</th>
+                                        <th>Danh sách Proxy</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="campaign-list-body">
+                                    <!-- Du lieu load bang JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </section>
+            </div>
+
+            <!-- SECTION 4: CẤU HÌNH CHUNG (SETTINGS) -->
+            <div class="tab-pane" id="pane-settings" style="display: none;">
+                <header class="main-header">
+                    <div class="header-title">
+                        <h1>Cấu hình chung</h1>
+                        <p>Quản lý các khóa API bên thứ 3 và các cấu hình hệ thống</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="saveSettings(event)">
+                        <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình
+                    </button>
+                </header>
+
+                <section class="settings-section">
+                    <div class="settings-grid">
+                        
+                        <!-- Card 1: Dịch vụ SMS OTP -->
+                        <div class="card" data-card-id="card-sms">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-key"></i> Dịch vụ SMS OTP (Thuê số điện thoại nhận mã OTP xác thực tài khoản)</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <div class="form-group">
+                                        <label for="api-viotp">API Key ViOTP (Mã kết nối dịch vụ thuê số Việt Nam nhận OTP)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-viotp" placeholder="Nhập API token ViOTP...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('viotp')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="viotp-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-smspool">API Key SMSPool (Mã kết nối dịch vụ thuê số Quốc tế nhận OTP)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-smspool" placeholder="Nhập API key SMSPool...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('smspool')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="smspool-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    
+                                    <!-- Vùng kiểm thử thuê số ảo trực tiếp -->
+                                    <div style="margin-top: 20px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.06);">
+                                        <h5 style="margin: 0 0 10px 0; font-size: 0.85rem; color: #a5b4fc; font-weight: 700;"><i class="fa-solid fa-vial"></i> Khung Thuê Số & Lấy OTP Thử Nghiệm Trực Tiếp</h5>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group col-4" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Cổng API (Dịch vụ)</label>
+                                                <select id="test-sms-type" onchange="toggleSmsCountrySelector()" style="padding: 6px 10px; font-size: 0.8rem; width: 100%;">
+                                                    <option value="viotp">ViOTP (Việt Nam)</option>
+                                                    <option value="smspool">SMSPool (Quốc tế)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-4" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Chọn Quốc gia</label>
+                                                <select id="test-sms-country" style="padding: 6px 10px; font-size: 0.8rem; width: 100%;">
+                                                    <option value="13">Việt Nam (VN / ID: 13)</option>
+                                                    <option value="1">Mỹ (USA / ID: 1)</option>
+                                                    <option value="36">Anh (UK / ID: 36)</option>
+                                                    <option value="5">Canada (CA / ID: 5)</option>
+                                                    <option value="11">Nhật Bản (JP / ID: 11)</option>
+                                                    <option value="82">Hàn Quốc (KR / ID: 82)</option>
+                                                    <option value="9">Thái Lan (TH / ID: 9)</option>
+                                                    <option value="7">Nga (RU / ID: 7)</option>
+                                                    <option value="4">Philippines (PH / ID: 4)</option>
+                                                    <option value="6">Indonesia (ID: 6)</option>
+                                                    <option value="12">Pháp (FR / ID: 12)</option>
+                                                    <option value="3">Đức (DE / ID: 3)</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-4" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Chọn Dịch vụ</label>
+                                                <select id="test-sms-service" style="padding: 6px 10px; font-size: 0.8rem; width: 100%;">
+                                                    <option value="facebook">Facebook</option>
+                                                    <option value="google">Google/Gmail</option>
+                                                    <option value="telegram">Telegram</option>
+                                                    <option value="twitter">Twitter/X</option>
+                                                    <option value="microsoft">Hotmail/Outlook</option>
+                                                    <option value="shopee">Shopee</option>
+                                                    <option value="tiktok">Tiktok</option>
+                                                    <option value="amazon">Amazon</option>
+                                                    <option value="instagram">Instagram</option>
+                                                    <option value="whatsapp">WhatsApp</option>
+                                                    <option value="viber">Viber</option>
+                                                    <option value="zalo">Zalo</option>
+                                                    <option value="discord">Discord</option>
+                                                    <option value="openai">OpenAI/ChatGPT</option>
+                                                    <option value="steam">Steam</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        
+                                        <div style="display: flex; gap: 8px; margin-top: 8px;">
+                                            <button type="button" class="btn btn-secondary btn-sm" id="btn-test-rent" onclick="runTestRentPhone()"><i class="fa-solid fa-mobile-screen-button"></i> Thuê số thử</button>
+                                            <button type="button" class="btn btn-secondary btn-sm" id="btn-test-otp" onclick="runTestCheckOtp()" disabled><i class="fa-solid fa-message"></i> Lấy OTP</button>
+                                            <button type="button" class="btn btn-danger btn-sm" id="btn-test-cancel" onclick="runTestCancelPhone()" disabled><i class="fa-solid fa-ban"></i> Hủy số</button>
+                                        </div>
+
+                                        <!-- Khung hiển thị thông tin số đã thuê và OTP như trên web chính -->
+                                        <div id="test-sms-board" style="display: none; margin-top: 12px; padding: 12px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--border-color);">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8rem;">
+                                                <span style="color: var(--text-secondary);">Số điện thoại:</span>
+                                                <strong id="sms-board-phone" style="color: #60a5fa; font-family: monospace; font-size: 0.9rem; letter-spacing: 0.5px;">-</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 0.8rem;">
+                                                <span style="color: var(--text-secondary);">ID Yêu cầu:</span>
+                                                <span id="sms-board-id" style="font-family: monospace; color: #cbd5e1;">-</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 0.8rem;">
+                                                <span style="color: var(--text-secondary);">Thời gian chờ:</span>
+                                                <strong id="sms-board-timer" style="color: #f87171;">60s</strong>
+                                            </div>
+                                            <div style="text-align: center; padding: 10px; background: rgba(16, 185, 129, 0.1); border: 1px dashed rgba(16, 185, 129, 0.3); border-radius: 6px; margin-top: 8px;">
+                                                <div style="font-size: 0.75rem; color: #34d399; margin-bottom: 4px; font-weight: 600;"><i class="fa-solid fa-shield-halved"></i> MÃ OTP NHẬN ĐƯỢC</div>
+                                                <div id="sms-board-otp" style="font-size: 1.8rem; font-weight: 800; color: #10b981; font-family: monospace; letter-spacing: 2px; text-shadow: 0 0 10px rgba(16,185,129,0.3);">------</div>
+                                                <div id="sms-board-sms" style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.3; font-style: italic; white-space: normal;">Đang đợi tin nhắn chứa mã xác thực...</div>
+                                            </div>
+                                        </div>
+                                        <div id="test-sms-output" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 0.8rem; font-family: monospace; display: none; border: 1px solid var(--border-color); color: #cbd5e1; white-space: pre-wrap;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+ 
+                        <!-- Card 2: AI Agent & Google Maps -->
+                        <div class="card" data-card-id="card-ai">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-robot"></i> Dịch vụ AI Agent (Trợ lý trí tuệ nhân tạo) & Google Maps</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <div class="form-group">
+                                        <label for="api-openai">API Key OpenAI (Mã kết nối trí tuệ nhân tạo OpenAI / ChatGPT)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="password" id="api-openai" placeholder="sk-...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('openai')"><i class="fa-solid fa-circle-check"></i> Check Live</button>
+                                        </div>
+                                        <span id="openai-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label style="display: flex; justify-content: space-between; align-items: center; width: 100%; margin-bottom: 6px;">
+                                            <span style="font-weight: 600;"><i class="fa-solid fa-key" style="color: #818cf8;"></i> API Key Gemini AI (Hỗ trợ nhiều khóa dự phòng xoay tua)</span>
+                                            <button type="button" class="btn btn-secondary" style="padding: 2px 8px; font-size: 0.75rem;" onclick="addGeminiKeyRow()"><i class="fa-solid fa-plus"></i> Thêm Key</button>
+                                        </label>
+                                        <div id="gemini-keys-container" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 8px;">
+                                            <!-- Các ô nhập Key Gemini sẽ được thêm vào đây bằng JS -->
+                                        </div>
+                                        <input type="hidden" id="api-gemini">
+                                        <span id="gemini-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-google-maps">API Key Google Maps (Mã kết nối bản đồ định vị thế giới)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-google-maps" placeholder="Nhập API key Google Maps...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('google_maps')"><i class="fa-solid fa-circle-check"></i> Check Live</button>
+                                        </div>
+                                        <span id="google_maps-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-automation-timeout">Thời gian chờ phần tử tối đa (Timeout tự động hóa - mili-giây)</label>
+                                        <input type="number" id="api-automation-timeout" placeholder="Ví dụ: 30000 (30 giây)" value="30000" min="5000">
+                                        <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; display: block;">
+                                            (Mặc định: 30000ms. Khi trình duyệt tự động tìm nút bấm hoặc ô nhập liệu, nếu quá thời gian này mà không thấy sẽ báo lỗi. Tăng lên nếu proxy tải chậm)
+                                        </span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px; display: none;">
+                                        <label for="api-xcode">API Key Xcode (Cấu hình bổ sung)</label>
+                                        <input type="text" id="api-xcode" value="">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 3: Dịch vụ Giải CAPTCHA -->
+                        <div class="card" data-card-id="card-captcha">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-shield-halved"></i> Dịch vụ Giải CAPTCHA (Tự động vượt mã xác minh hình ảnh)</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <div class="form-group">
+                                        <label for="api-anycaptcha">API Key AnyCaptcha (Mã kết nối giải captcha AnyCaptcha)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-anycaptcha" placeholder="Nhập API key AnyCaptcha...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('anycaptcha')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="anycaptcha-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-2captcha">API Key 2Captcha (Mã kết nối giải captcha 2Captcha quốc tế)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-2captcha" placeholder="Nhập API key 2Captcha...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('2captcha')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="2captcha-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-1stcaptcha">API Key 1stCaptcha (Mã kết nối giải captcha 1stCaptcha tốc độ cao)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-1stcaptcha" placeholder="Nhập API key 1stCaptcha...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('1stcaptcha')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="1stcaptcha-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-anticaptchatop">API Key anticaptcha.top (Dịch vụ giải captcha Việt Nam giá rẻ)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-anticaptchatop" placeholder="Nhập API key anticaptcha.top...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('anticaptchatop')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="anticaptchatop-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-autocaptchapro">API Key autocaptcha.pro (Dịch vụ giải captcha giá rẻ hỗ trợ dùng thử)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-autocaptchapro" placeholder="Nhập API key autocaptcha.pro...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('autocaptchapro')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="autocaptchapro-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+
+                        <!-- Card 5: Dịch vụ Email ảo 1secmail -->
+                        <div class="card" data-card-id="card-mail-1sec">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-envelope-open-text"></i> Dịch vụ Email ảo (1secmail - Hộp thư ảo miễn phí nhận OTP)</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <div class="form-group">
+                                        <label for="api-mail">API Key Mail (Khóa kết nối dịch vụ Email ảo - 1secmail không bắt buộc)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-mail" placeholder="Nhập API token/key cho dịch vụ mail ảo...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('mail')"><i class="fa-solid fa-wallet"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="mail-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 10px; margin-bottom: 15px; line-height: 1.4;">
+                                        (1secmail là hộp thư ảo miễn phí dùng để đăng ký tài khoản nhanh không cần mật khẩu. Nếu không cấu hình API Key, hệ thống vẫn cho phép tạo mail ảo và nhận OTP miễn phí).
+                                    </p>
+                                    <div style="display: flex; gap: 8px;">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="runTestCreateEmail()"><i class="fa-solid fa-envelope"></i> Tạo email thử</button>
+                                        <button type="button" class="btn btn-secondary btn-sm" id="btn-test-email-otp" onclick="runTestCheckEmailOtp()" disabled><i class="fa-solid fa-envelope-open"></i> Lấy OTP mail thử</button>
+                                    </div>
+                                    <div id="test-email-output" style="margin-top: 10px; padding: 10px; background: rgba(0,0,0,0.3); border-radius: 6px; font-size: 0.8rem; font-family: monospace; display: none; border: 1px solid var(--border-color); color: #cbd5e1; white-space: pre-wrap;"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 4: Cấu hình & Xoay Proxy Dân Cư -->
+                        <div class="card" data-card-id="card-proxy">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-network-wired"></i> API Đổi Proxy & Thuê Proxy Cư Dân (Residential Proxy)</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <!-- Nhập API xoay IP thô -->
+                                    <div class="form-group">
+                                        <label for="api-proxy-changer">Đường dẫn API đổi IP dân cư (Link đổi IP thủ công hoặc tự động khi chạy)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-proxy-changer" placeholder="Ví dụ: https://api.proxy.com/rotate?key=...">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('proxy_changer')"><i class="fa-solid fa-arrows-rotate"></i> Test xoay IP</button>
+                                        </div>
+                                        <span id="proxy_changer-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+
+                                    <!-- Tích hợp API Minproxy Next (V3) -->
+                                    <div class="form-group" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 15px;">
+                                        <h5 style="margin: 0 0 10px 0; font-size: 0.85rem; color: #a5b4fc; font-weight: 700;">
+                                            <i class="fa-solid fa-server"></i> Tích hợp API Minproxy Next (IPv4 Static / Rotating)
+                                        </h5>
+                                        <label for="api-minproxy-key">API Key Minproxy Next</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="password" id="api-minproxy-key" placeholder="Nhập API Key Minproxy (Next V3)..." style="flex-grow: 1; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white;">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('minproxy')"><i class="fa-solid fa-circle-check"></i> Check Live</button>
+                                            <button type="button" class="btn btn-secondary" onclick="fetchMinproxyIP()"><i class="fa-solid fa-cloud-download"></i> Lấy IP Proxy</button>
+                                            <button type="button" class="btn btn-secondary" onclick="rotateMinproxyIP()"><i class="fa-solid fa-arrows-rotate"></i> Đổi IP (Xoay)</button>
+                                        </div>
+                                        <span id="minproxy-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                        
+                                        <!-- Khung hiển thị thông tin Check Proxy Minproxy -->
+                                        <div id="minproxy-board" style="display: none; margin-top: 12px; padding: 12px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">IP Hiện Tại:</span>
+                                                <strong id="minproxy-board-ip" style="color: #34d399;">-</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">Cổng HTTP Port:</span>
+                                                <span id="minproxy-board-port" style="color: #cbd5e1; font-weight: bold;">-</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">Username / Password:</span>
+                                                <span id="minproxy-board-auth" style="color: #cbd5e1;">-</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">Quốc gia:</span>
+                                                <span id="minproxy-board-location" style="color: #cbd5e1;">-</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span style="color: var(--text-secondary);">Ngày hết hạn:</span>
+                                                <span id="minproxy-board-expire" style="color: #f87171;">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Vùng cấu hình chi tiết Proxy cư dân -->
+                                    <div style="margin-top: 15px; padding-top: 15px; border-top: 1px dashed rgba(255,255,255,0.06);">
+                                        <h5 style="margin: 0 0 10px 0; font-size: 0.85rem; color: #a5b4fc; font-weight: 700;"><i class="fa-solid fa-gears"></i> Cấu hình tham số cổng Proxy dân cư (Sắp xếp IP theo địa lý)</h5>
+                                        
+                                        <div class="form-row">
+                                            <div class="form-group col-6" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Quốc gia IP Proxy</label>
+                                                <select id="proxy-res-country" style="padding: 6px 10px; font-size: 0.8rem; width: 100%;">
+                                                    <option value="US">Mỹ (USA)</option>
+                                                    <option value="VN">Việt Nam (VN)</option>
+                                                    <option value="GB">Anh (UK)</option>
+                                                    <option value="CA">Canada</option>
+                                                    <option value="JP">Nhật Bản</option>
+                                                    <option value="SG">Singapore</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group col-6" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Giao thức mạng</label>
+                                                <select id="proxy-res-protocol" style="padding: 6px 10px; font-size: 0.8rem; width: 100%;">
+                                                    <option value="socks5">Socks5 (Độ bảo mật cao)</option>
+                                                    <option value="http">HTTP (Lướt web)</option>
+                                                </select>
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row" style="margin-top: 8px;">
+                                            <div class="form-group col-4" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Bang (State)</label>
+                                                <input type="text" id="proxy-res-state" placeholder="Ví dụ: NY" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                            <div class="form-group col-4" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Thành phố</label>
+                                                <input type="text" id="proxy-res-city" placeholder="Ví dụ: NewYork" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                            <div class="form-group col-4" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">ISP (Nhà mạng)</label>
+                                                <input type="text" id="proxy-res-isp" placeholder="Ví dụ: Comcast" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row" style="margin-top: 8px;">
+                                            <div class="form-group col-6" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Host & Port Cổng Proxy</label>
+                                                <input type="text" id="proxy-res-host" placeholder="pr.proxyprovider.com:8000" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                            <div class="form-group col-6" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Thời gian xoay IP (giây)</label>
+                                                <input type="number" id="proxy-res-rotate-time" value="600" min="60" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                        </div>
+
+                                        <div class="form-row" style="margin-top: 8px;">
+                                            <div class="form-group col-6" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Username Cửa cổng</label>
+                                                <input type="text" id="proxy-res-username" placeholder="Nhập username..." style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                            <div class="form-group col-6" style="margin-bottom: 8px;">
+                                                <label style="font-size: 0.75rem;">Password Mật khẩu</label>
+                                                <input type="password" id="proxy-res-password" placeholder="Nhập password..." style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                        </div>
+
+                                        <div style="display: flex; gap: 8px; margin-top: 12px;">
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick="generateResidentialProxy()"><i class="fa-solid fa-wand-magic-sparkles"></i> Tạo & Gán Proxy</button>
+                                            <button type="button" class="btn btn-secondary btn-sm" onclick="testResidentialProxyConnection()"><i class="fa-solid fa-server"></i> Check Proxy Dân Cư</button>
+                                        </div>
+
+                                        <!-- Khung hiển thị thông tin Check Proxy -->
+                                        <div id="proxy-res-board" style="display: none; margin-top: 12px; padding: 12px; background: rgba(0, 0, 0, 0.4); border-radius: 8px; border: 1px solid var(--border-color); font-size: 0.8rem;">
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">IP Hiện Tại:</span>
+                                                <strong id="proxy-board-ip" style="color: #34d399;">-</strong>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">Múi Giờ (Timezone):</span>
+                                                <span id="proxy-board-timezone" style="color: #cbd5e1;">-</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between; margin-bottom: 6px;">
+                                                <span style="color: var(--text-secondary);">Quốc Gia / Thành Phố:</span>
+                                                <span id="proxy-board-location" style="color: #cbd5e1;">-</span>
+                                            </div>
+                                            <div style="display: flex; justify-content: space-between;">
+                                                <span style="color: var(--text-secondary);">ISP / Nhà mạng:</span>
+                                                <span id="proxy-board-isp" style="color: #a5b4fc;">-</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="settings-span-2" style="margin-top: 10px; padding: 12px; background-color: rgba(99, 102, 241, 0.04); border-radius: 8px; border: 1px dashed rgba(99, 102, 241, 0.15); align-self: start;">
+                            <span style="font-size: 0.78rem; color: var(--text-secondary); line-height: 1.4; display: block;">
+                                <i class="fa-solid fa-circle-info" style="color: var(--accent-color);"></i> <strong>Lưu ý về Proxy:</strong> Khi sử dụng chiến dịch đa luồng, mỗi profile sẽ được gán xoay vòng proxy riêng từ danh sách của chiến dịch nhằm đảm bảo không trùng lặp IP giữa các luồng.
+                            </span>
+                        </div>
+
+                        <!-- Card 6: Cấu hình Cơ sở dữ liệu PostgreSQL -->
+                        <div class="card" data-card-id="card-postgres">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-database"></i> Cơ sở dữ liệu PostgreSQL (Lưu trữ nhật ký thực thi kịch bản)</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <div class="form-group" style="margin-bottom: 15px; display: flex; align-items: center; gap: 8px;">
+                                        <input type="checkbox" id="api-pg-enabled" style="width: auto; cursor: pointer;">
+                                        <label for="api-pg-enabled" style="margin: 0; cursor: pointer; font-weight: bold; color: #a5b4fc;">Kích hoạt Cơ sở dữ liệu PostgreSQL</label>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group col-8">
+                                            <label for="api-pg-host">Địa chỉ máy chủ (Host / IP)</label>
+                                            <input type="text" id="api-pg-host" placeholder="Ví dụ: localhost hoặc 127.0.0.1">
+                                        </div>
+                                        <div class="form-group col-4">
+                                            <label for="api-pg-port">Cổng (Port)</label>
+                                            <input type="number" id="api-pg-port" placeholder="5432" value="5432">
+                                        </div>
+                                    </div>
+                                    <div class="form-row" style="margin-top: 10px;">
+                                        <div class="form-group col-6">
+                                            <label for="api-pg-user">Tên tài khoản (User)</label>
+                                            <input type="text" id="api-pg-user" placeholder="postgres">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label for="api-pg-pass">Mật khẩu (Password)</label>
+                                            <input type="password" id="api-pg-pass" placeholder="Mật khẩu kết nối">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px;">
+                                        <label for="api-pg-db">Tên Cơ sở dữ liệu (Database Name)</label>
+                                        <div style="display: flex; gap: 8px;">
+                                            <input type="text" id="api-pg-db" placeholder="Ví dụ: automation_logs">
+                                            <button type="button" class="btn btn-secondary" onclick="checkApiKey('postgres')"><i class="fa-solid fa-circle-check"></i> Kiểm tra</button>
+                                        </div>
+                                        <span id="postgres-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 8: Cấu hình Lưu trữ Tài nguyên Thu thập -->
+                        <div class="card" data-card-id="card-capture-save">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-file-invoice"></i> Cấu hình Lưu trữ Tài nguyên Thu thập</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 15px; line-height: 1.4;">
+                                        Tích chọn để cấu hình các loại dữ liệu tài nguyên tự động thu thập từ các luồng chạy kịch bản hành động:
+                                    </p>
+                                    <div style="display: flex; flex-direction: column; gap: 10px;">
+                                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                            <input type="checkbox" id="cap-save-username" checked style="width: auto;">
+                                            Lưu tên đăng nhập / ID Tài khoản
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                            <input type="checkbox" id="cap-save-password" checked style="width: auto;">
+                                            Lưu Mật khẩu
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                            <input type="checkbox" id="cap-save-email" checked style="width: auto;">
+                                            Lưu Địa chỉ Email
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                            <input type="checkbox" id="cap-save-phone" checked style="width: auto;">
+                                            Lưu Số điện thoại
+                                        </label>
+                                        <label style="display: flex; align-items: center; gap: 8px; font-weight: normal; cursor: pointer;">
+                                            <input type="checkbox" id="cap-save-cookie" checked style="width: auto;">
+                                            Lưu Dữ liệu Cookie
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card 7: Cấu hình Hệ thống Mail Tạm Thời (Anti-Mail Manager) -->
+                        <div class="card" data-card-id="card-mail-manager">
+                            <div class="form-section">
+                                <div class="card-header-toggle" onclick="toggleCardCollapse(this)">
+                                    <h4 style="margin: 0;"><i class="fa-solid fa-envelope-circle-check"></i> Hệ thống Mail Tạm Thời (Anti-Mail Manager)</h4>
+                                    <span class="collapse-icon"><i class="fa-solid fa-chevron-up"></i></span>
+                                </div>
+                                <div class="card-body-content">
+                                    <div class="form-row">
+                                        <div class="form-group col-8">
+                                            <label for="api-mail-url">Đường dẫn API Mail Manager (Địa chỉ Server Mail)</label>
+                                            <input type="text" id="api-mail-url" placeholder="Mặc định: http://127.0.0.1:5001" value="http://127.0.0.1:5001">
+                                        </div>
+                                        <div class="form-group col-4">
+                                            <label for="api-mail-use-fallback">API Dự phòng (Mail.tm)</label>
+                                            <select id="api-mail-use-fallback" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white;">
+                                                <option value="1">Bật (Sử dụng khi lỗi)</option>
+                                                <option value="0">Tắt (Chỉ dùng domain riêng)</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 10px;">
+                                        <label for="api-mail-domain">Tên miền nhận mail riêng (Domain đã cấu hình MX)</label>
+                                        <input type="text" id="api-mail-domain" placeholder="Ví dụ: mydomain.com">
+                                    </div>
+                                    <div class="form-row" style="margin-top: 10px;">
+                                        <div class="form-group col-8">
+                                            <label for="api-mail-smtp-host">SMTP Host (Máy chủ gửi email đi)</label>
+                                            <input type="text" id="api-mail-smtp-host" placeholder="Ví dụ: smtp.gmail.com">
+                                        </div>
+                                        <div class="form-group col-4">
+                                            <label for="api-mail-smtp-port">SMTP Port</label>
+                                            <input type="number" id="api-mail-smtp-port" placeholder="587" value="587">
+                                        </div>
+                                    </div>
+                                    <div class="form-row" style="margin-top: 10px;">
+                                        <div class="form-group col-6">
+                                            <label for="api-mail-smtp-user">SMTP Username (Email chính)</label>
+                                            <input type="email" id="api-mail-smtp-user" placeholder="yourmail@gmail.com">
+                                        </div>
+                                        <div class="form-group col-6">
+                                            <label for="api-mail-smtp-pass">SMTP Password (Mật khẩu ứng dụng)</label>
+                                            <input type="password" id="api-mail-smtp-pass" placeholder="Mật khẩu SMTP">
+                                        </div>
+                                    </div>
+                                    <div class="form-group" style="margin-top: 15px; border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 15px;">
+                                        <h5 style="margin: 0 0 10px 0; font-size: 0.85rem; color: #a5b4fc; font-weight: 700;"><i class="fa-solid fa-cloud"></i> Cấu hình Tự động đồng bộ Cloudflare Worker</h5>
+                                        <div class="form-row">
+                                            <div class="form-group col-6">
+                                                <label style="font-size: 0.75rem;">Cloudflare Email</label>
+                                                <input type="email" id="api-cf-email" placeholder="email_cloudflare@example.com" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                            <div class="form-group col-6">
+                                                <label style="font-size: 0.75rem;">Cloudflare Worker Name</label>
+                                                <input type="text" id="api-cf-worker-name" placeholder="Ví dụ: mail-webhook" value="mail-webhook" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                        </div>
+                                        <div class="form-row" style="margin-top: 8px;">
+                                            <div class="form-group col-6">
+                                                <label style="font-size: 0.75rem;">Cloudflare Account ID</label>
+                                                <input type="text" id="api-cf-account-id" placeholder="Account ID từ Cloudflare Dashboard" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                            <div class="form-group col-6">
+                                                <label style="font-size: 0.75rem;">Cloudflare API Token / Key</label>
+                                                <input type="password" id="api-cf-token" placeholder="Global API Key hoặc Worker Token" style="padding: 6px 10px; font-size: 0.8rem;">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div style="display: flex; gap: 8px; margin-top: 15px;">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="checkApiKey('mail_manager')"><i class="fa-solid fa-circle-check"></i> Kiểm tra kết nối</button>
+                                    </div>
+                                    <span id="mail_manager-status" style="font-size: 0.8rem; display: block; margin-top: 6px; font-weight: 500;"></span>
+                                </div>
+                            </div>
+                        </div>
+ 
+                    </div>
+                </section>
+            </div>
+
+            <!-- SECTION MAIL: QUẢN LÝ MAIL TẠM THỜI -->
+            <div class="tab-pane" id="pane-mail" style="display: none; height: calc(100vh - 200px); margin-bottom: 20px;">
+                <div class="card" style="height: 100%; padding: 0; overflow: hidden; border: 1px solid var(--border-color); border-radius: 12px; background: var(--bg-card);">
+                    <iframe src="http://127.0.0.1:5001" style="width: 100%; height: 100%; border: none;"></iframe>
+                </div>
+            </div>
+
+            <!-- SECTION EXTENSIONS: QUẢN LÝ TIỆN ÍCH MỞ RỘNG -->
+            <div class="tab-pane" id="pane-extensions" style="display: none;">
+                <header class="main-header">
+                    <div class="header-title">
+                        <h1>Quản lý Tiện ích mở rộng (Chrome Extensions)</h1>
+                        <p>Quản lý các tiện ích hệ thống và cấu hình riêng biệt cho từng Hồ sơ (Profile)</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="scanExtensionsDirectory()">
+                        <i class="fa-solid fa-arrows-rotate"></i> Quét thư mục Tiện ích
+                    </button>
+                </header>
+
+                <section class="extensions-section" style="display: flex; gap: 24px; align-items: flex-start; margin-bottom: 20px;">
+                    <!-- Cột Trái: Kho Tiện ích -->
+                    <div class="card card-table" style="flex: 1.2; width: 100%; min-height: 400px; padding: 20px;">
+                        <h3 style="font-size: 1.1rem; color: #818cf8; display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                            <i class="fa-solid fa-warehouse"></i> Kho Tiện ích của Dự án
+                        </h3>
+                        <div class="table-responsive">
+                            <table style="width: 100%;">
+                                <thead>
+                                    <tr>
+                                        <th>Tên Tiện Ích</th>
+                                        <th>Phiên bản</th>
+                                        <th>Đường dẫn thư mục</th>
+                                        <th class="text-center">Auto cài đặt (Profile mới)</th>
+                                        <th>Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="extension-list-body">
+                                    <tr>
+                                        <td colspan="5" class="text-center" style="color: var(--text-secondary); padding: 30px 0;">
+                                            <i class="fa-solid fa-circle-notch fa-spin"></i> Đang tải dữ liệu...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Cột Phải: Cấu hình theo Profile -->
+                    <div class="card" style="flex: 1; background: var(--bg-card); border: 1px solid var(--border-color); border-radius: 12px; padding: 20px; min-height: 400px; display: flex; flex-direction: column;">
+                        <h3 style="font-size: 1.1rem; color: #818cf8; display: flex; align-items: center; gap: 8px; margin-top: 0; margin-bottom: 15px; border-bottom: 1px solid var(--border-color); padding-bottom: 10px;">
+                            <i class="fa-solid fa-sliders"></i> Cấu hình riêng cho từng Hồ sơ (Profile)
+                        </h3>
+                        
+                        <div class="form-group" style="margin-bottom: 20px;">
+                            <label for="ext-profile-select" style="font-weight: 600; color: #a5b4fc; display: block; margin-bottom: 6px;">Chọn Profile muốn cấu hình:</label>
+                            <select id="ext-profile-select" onchange="loadExtensionsForSelectedProfile()" style="width: 100%; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white; font-size: 0.88rem;">
+                                <option value="">-- Chọn Profile --</option>
+                            </select>
+                        </div>
+
+                        <div id="ext-profile-config-container" style="flex-grow: 1; display: flex; flex-direction: column; gap: 16px; max-height: 350px; overflow-y: auto; padding-right: 4px;">
+                            <div style="text-align: center; color: var(--text-secondary); padding: 30px 0; font-size: 0.88rem;">
+                                <i class="fa-solid fa-circle-info"></i> Hãy chọn một Profile ở trên để bắt đầu cấu hình tiện ích.
+                            </div>
+                        </div>
+
+                        <button type="button" class="btn btn-success" id="btn-save-profile-extensions" onclick="saveProfileExtensionsConfig()" style="width: 100%; margin-top: 20px; padding: 12px;" disabled>
+                            <i class="fa-solid fa-floppy-disk"></i> Lưu Cấu Hình Cho Profile
+                        </button>
+                    </div>
+                </section>
+            </div>
+
+            <!-- Bảng trạng thái hoạt động (Terminal Log Console) -->
+            <div class="log-console-container">
+                <div class="log-console-header">
+                    <span class="log-title"><i class="fa-solid fa-terminal"></i> Bảng Trạng Thái Hoạt Động (Nhật ký thực thi lỗi & trạng thái hệ thống)</span>
+                    <div class="log-console-actions">
+                        <button type="button" class="btn-icon" onclick="clearLogs()" title="Xóa màn hình log"><i class="fa-solid fa-eraser"></i></button>
+                        <button type="button" class="btn-icon" onclick="toggleLogsConsole()" id="btn-toggle-logs" title="Thu gọn / Mở rộng"><i class="fa-solid fa-chevron-down"></i></button>
+                    </div>
+                </div>
+                <div class="log-console-body" id="log-console">
+                    <div class="log-line text-info">[Hệ thống] Khởi tạo Bảng trạng thái hoạt động thành công. Máy chủ đang trực tuyến...</div>
+                </div>
+            </div>
+
+        </main>
+    </div>
+
+    <!-- MODAL 1: FORM CẤU HÌNH PROFILE -->
+    <div class="modal-overlay" id="profile-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="modal-title">Cấu hình Profile mới</h3>
+                <button class="close-btn" id="btn-close-modal"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="profile-form">
+                <input type="hidden" id="profile-id">
+                
+                <div class="form-section">
+                    <h4><i class="fa-solid fa-signature"></i> Thông tin cơ bản & Hành động (Thông tin hồ sơ duyệt web)</h4>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="p-name">Tên Profile (Tên tài khoản / hồ sơ trình duyệt) <span class="required">*</span></label>
+                            <input type="text" id="p-name" placeholder="Ví dụ: Acc Facebook 1" required>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="p-script-id">Kịch bản hành động riêng (Chuỗi các bước tự động hóa khi khởi chạy - tùy chọn)</label>
+                            <select id="p-script-id">
+                                <option value="">Không có (Dùng kịch bản mặc định)</option>
+                                <!-- JS load scripts -->
+                            </select>
+                        </div>
+                    </div>
+                    <!-- Checkbox Bật MCP Server & Quốc gia Profile -->
+                    <div class="form-row" style="margin-top: 12px; margin-bottom: 0;">
+                        <div class="form-group col-6">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="p-use-mcp" style="width: auto; cursor: pointer;">
+                                Bật kèm MCP Server (AI Agent kết nối)
+                            </label>
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="p-country-search">Quốc gia Profile (Định vị & vân tay theo quốc gia) <span class="required">*</span></label>
+                            <div class="autocomplete-wrapper" style="position: relative; width: 100%;">
+                                <input type="hidden" id="p-country" value="VN">
+                                <input type="text" id="p-country-search" placeholder="Gõ tên quốc gia để tìm (Ví dụ: Việt Nam, Mỹ...)" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white; width: 100%;" autocomplete="off" required>
+                                <div id="p-country-dropdown" class="autocomplete-dropdown" style="display: none;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4><i class="fa-solid fa-puzzle-piece"></i> Tiện ích mở rộng (Chrome Extensions) cài đặt kèm theo</h4>
+                    <div id="profile-extensions-checkboxes" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-top: 10px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-color); border-radius: 6px;">
+                        <!-- Động tải bằng JavaScript -->
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4><i class="fa-solid fa-laptop"></i> Thông số thiết bị (Fingerprint - Dấu vân tay số mô phỏng phần cứng máy tính)</h4>
+                    <div class="preset-buttons" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                        <button type="button" class="btn btn-sm btn-outline" onclick="setPreset('windows')"><i class="fa-brands fa-windows"></i> Windows PC (Máy tính Windows)</button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="setPreset('mac')"><i class="fa-brands fa-apple"></i> macOS PC (Máy tính Mac)</button>
+                        <button type="button" class="btn btn-sm btn-outline" onclick="setPreset('android')"><i class="fa-brands fa-android"></i> Android Mobile (Điện thoại Android)</button>
+                        <button type="button" class="btn btn-sm btn-primary" onclick="randomizeProfileFingerprint()" style="background: linear-gradient(135deg, #6366f1 0%, #4f46e5 100%); border: none;"><i class="fa-solid fa-shuffle"></i> RANDOM Cấu hình (Tự chọn khớp logic)</button>
+                    </div>
+                    <div class="form-group">
+                        <label for="p-ua">User-Agent (Chuỗi ký tự định danh trình duyệt và hệ điều hành giả lập)</label>
+                        <textarea id="p-ua" rows="2" placeholder="Nhập chuỗi User-Agent..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="p-width">Chiều rộng màn hình (Độ phân giải ngang - px)</label>
+                            <input type="number" id="p-width" value="1280">
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="p-height">Chiều cao màn hình (Độ phân giải dọc - px)</label>
+                            <input type="number" id="p-height" value="720">
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px;">
+                        <div class="form-group col-4">
+                            <label for="p-device-memory">Bộ nhớ RAM giả lập (GB)</label>
+                            <select id="p-device-memory">
+                                <option value="2">2 GB</option>
+                                <option value="4">4 GB</option>
+                                <option value="8" selected>8 GB</option>
+                                <option value="16">16 GB</option>
+                                <option value="32">32 GB</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label for="p-hardware-concurrency">Số luồng CPU (Cores)</label>
+                            <select id="p-hardware-concurrency">
+                                <option value="2">2 Cores</option>
+                                <option value="4" selected>4 Cores</option>
+                                <option value="6">6 Cores</option>
+                                <option value="8">8 Cores</option>
+                                <option value="12">12 Cores</option>
+                                <option value="16">16 Cores</option>
+                                <option value="24">24 Cores</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label for="p-canvas-noise">Giả lập Canvas (Chống dấu vân tay đồ họa)</label>
+                            <select id="p-canvas-noise">
+                                <option value="1" selected>Bật Canvas Noise (Nhiễu Canvas)</option>
+                                <option value="0">Tắt (Không làm nhiễu)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px;">
+                        <div class="form-group col-4">
+                            <label for="p-gpu-vendor">Nhà sản xuất GPU giả lập</label>
+                            <select id="p-gpu-vendor">
+                                <option value="Google Inc. (NVIDIA)">Google Inc. (NVIDIA)</option>
+                                <option value="Google Inc. (Intel)">Google Inc. (Intel)</option>
+                                <option value="Google Inc. (ATI Technologies Inc.)">Google Inc. (AMD/ATI)</option>
+                                <option value="Apple Inc.">Apple Inc. (Metal)</option>
+                                <option value="Google Inc. (Qualcomm)">Google Inc. (Qualcomm)</option>
+                                <option value="Google Inc. (ARM)">Google Inc. (ARM)</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label for="p-gpu-renderer">Dòng card đồ họa GPU giả lập</label>
+                            <select id="p-gpu-renderer" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white; width: 100%;">
+                                <!-- Được cập nhật động bằng Javascript -->
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label for="p-locale">Ngôn ngữ giả lập (Locale)</label>
+                            <select id="p-locale">
+                                <option value="vi-VN" selected>Tiếng Việt (vi-VN)</option>
+                                <option value="en-US">Tiếng Anh - Mỹ (en-US)</option>
+                                <option value="en-GB">Tiếng Anh - Anh (en-GB)</option>
+                                <option value="ja-JP">Tiếng Nhật (ja-JP)</option>
+                                <option value="ko-KR">Tiếng Hàn (ko-KR)</option>
+                                <option value="zh-CN">Tiếng Trung (zh-CN)</option>
+                                <option value="de-DE">Tiếng Đức (de-DE)</option>
+                                <option value="fr-FR">Tiếng Pháp (fr-FR)</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row" style="margin-top: 10px;">
+                        <div class="form-group col-4">
+                            <label for="p-webrtc-mode">Chế độ mạng WebRTC (Bảo vệ rò rỉ IP)</label>
+                            <select id="p-webrtc-mode">
+                                <option value="spoof" selected>Spoof IP (Giả lập trùng IP Proxy)</option>
+                                <option value="disable">Disable WebRTC (Vô hiệu hóa hoàn toàn)</option>
+                                <option value="real">Real IP (Độ trễ thấp - IP thật)</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label for="p-fonts-mode">Giả lập danh sách phông chữ (Fonts)</label>
+                            <select id="p-fonts-mode">
+                                <option value="1" selected>Bật giả lập (Chống Font Fingerprint)</option>
+                                <option value="0">Tắt (Dùng phông chữ máy thật)</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-4">
+                            <label for="p-media-devices">Giả lập thiết bị đa phương tiện (Media)</label>
+                            <select id="p-media-devices">
+                                <option value="1" selected>Bật giả lập (Tạo mic/cam/loa ảo)</option>
+                                <option value="0">Tắt (Dùng thiết bị máy thật)</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4><i class="fa-solid fa-network-wired"></i> Cấu hình Proxy & Đồng bộ hóa (Thay đổi địa chỉ mạng IP trung gian)</h4>
+                    
+                    <!-- Checkbox Sử dụng Proxy -->
+                    <div class="form-group" style="margin-bottom: 12px;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; user-select: none;">
+                            <input type="checkbox" id="p-use-proxy" onchange="toggleProxyFields()" style="width: auto; cursor: pointer;">
+                            Sử dụng Proxy cho Profile này (Đổi IP internet để ẩn danh)
+                        </label>
+                    </div>
+
+                    <!-- Vùng chứa Proxy được ẩn hiện động -->
+                    <div id="proxy-fields-container" style="display: none; border-left: 2px solid var(--accent-color); padding-left: 12px; margin-top: 8px;">
+                        <div class="form-group">
+                            <label for="p-proxy">Địa chỉ Proxy (Cổng mạng trung gian HTTP/Socks5 dạng IP:Cổng)</label>
+                            <div style="display: flex; gap: 8px; align-items: center;">
+                                <select id="p-proxy-type" style="width: 110px; min-width: 110px; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(255,255,255,0.03); color: white; cursor: pointer; font-weight: 500;">
+                                    <option value="http://">HTTP</option>
+                                    <option value="https://">HTTPS</option>
+                                    <option value="socks5://">SOCKS5</option>
+                                </select>
+                                <input type="text" id="p-proxy" placeholder="Ví dụ: 192.168.1.100:8080" style="flex-grow: 1;">
+                                <button type="button" class="btn btn-secondary" id="btn-sync-proxy" onclick="syncProxyDetails()"><i class="fa-solid fa-server"></i> Check Live Proxy</button>
+                                <button type="button" class="btn btn-secondary" id="btn-minproxy-fetch" onclick="fillProxyFromMinproxy()"><i class="fa-solid fa-cloud-download"></i> Lấy từ Minproxy</button>
+                            </div>
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; display: block;">
+                                (Đồng bộ hóa: Hệ thống sẽ tự động gửi yêu cầu kiểm tra xem IP này thuộc nước nào, từ đó tự động đồng bộ múi giờ và vị trí trên bản đồ khớp 100%)
+                            </span>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="p-proxy-user">Tài khoản Proxy (Nếu có tài khoản đăng nhập)</label>
+                                <input type="text" id="p-proxy-user" placeholder="Tài khoản">
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="p-proxy-pass">Mật khẩu Proxy (Nếu có mật khẩu đăng nhập)</label>
+                                <input type="password" id="p-proxy-pass" placeholder="Mật khẩu">
+                            </div>
+                        </div>
+                        <div class="form-group" style="margin-top: 10px;">
+                            <label for="p-proxy-rotate-url">Đường dẫn API xoay IP riêng của Proxy (Link gửi yêu cầu đổi địa chỉ IP mới - Tùy chọn)</label>
+                            <input type="text" id="p-proxy-rotate-url" placeholder="Ví dụ: https://dichvuproxy.com/api/rotate?key=xyz">
+                            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 4px; display: block;">
+                                (Hệ thống sẽ gửi yêu cầu đổi IP mới của proxy trước khi khởi chạy trình duyệt Chromium)
+                            </span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4><i class="fa-solid fa-globe"></i> Định vị & Múi giờ giả lập (Giả lập vị trí địa lý)</h4>
+                    <!-- Cong cu tim kiem tren ban do -->
+                    <div class="form-group">
+                        <label>Bản đồ vị trí (Tìm kiếm hoặc bấm trực tiếp trên bản đồ để ghim vị trí)</label>
+                        <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                            <input type="text" id="map-search-input" placeholder="Tìm thành phố, địa chỉ (Ví dụ: London, Tokyo, Hanoi)..." style="flex-grow: 1;">
+                            <button type="button" class="btn btn-secondary btn-sm" id="btn-map-search"><i class="fa-solid fa-magnifying-glass"></i> Tìm kiếm</button>
+                        </div>
+                        <!-- Div chứa Leaflet map -->
+                        <div id="leaflet-map"></div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="p-timezone">Múi giờ (Timezone - Tự động thay đổi khớp theo vị trí bản đồ)</label>
+                            <select id="p-timezone">
+                                <option value="Asia/Ho_Chi_Minh">Asia/Ho_Chi_Minh (GMT+7)</option>
+                                <option value="America/New_York">America/New_York (GMT-5)</option>
+                                <option value="Europe/London">Europe/London (GMT+0)</option>
+                                <option value="Asia/Tokyo">Asia/Tokyo (GMT+9)</option>
+                                <option value="Asia/Seoul">Asia/Seoul (GMT+9)</option>
+                                <option value="Asia/Singapore">Asia/Singapore (GMT+8)</option>
+                            </select>
+                        </div>
+                        <div class="form-group col-3">
+                            <label for="p-lat">Vĩ độ (Latitude - Tọa độ vĩ độ định vị toàn cầu)</label>
+                            <input type="number" step="any" id="p-lat" placeholder="21.0277">
+                        </div>
+                        <div class="form-group col-3">
+                            <label for="p-lng">Kinh độ (Longitude - Tọa độ kinh độ định vị toàn cầu)</label>
+                            <input type="number" step="any" id="p-lng" placeholder="105.8341">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" id="btn-cancel-modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary">Lưu cấu hình</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: FORM TẠO/SỬA KỊCH BẢN HÀNH ĐỘNG (SCRIPTS BUILDER) -->
+    <div class="modal-overlay" id="script-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3 id="script-modal-title">Thiết lập Kịch bản Tự động hóa</h3>
+                <button class="close-btn" onclick="closeScriptModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="script-form">
+                <input type="hidden" id="script-id">
+                
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="s-name">Tên kịch bản hành động <span class="required">*</span></label>
+                        <input type="text" id="s-name" placeholder="Ví dụ: Kịch bản spam nuôi tài khoản" required>
+                    </div>
+                </div>
+
+                <!-- Tab Switcher chuyển đổi chế độ xem GUI / Code -->
+                <div class="form-section" style="padding: 12px 30px; border-bottom: 1px dashed rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: space-between; background: rgba(2, 6, 23, 0.2);">
+                    <span style="font-size: 0.85rem; color: #a5b4fc; font-weight: 600;"><i class="fa-solid fa-sliders"></i> Chế độ thiết lập kịch bản:</span>
+                    <div class="script-editor-modes" style="display: flex; gap: 4px; background: rgba(2, 6, 23, 0.4); padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.05); box-shadow: inset 0 2px 4px rgba(0,0,0,0.3);">
+                        <button type="button" class="btn btn-sm btn-primary" id="btn-mode-gui" onclick="switchScriptMode('gui')" style="padding: 6px 16px; font-size: 0.8rem; border-radius: 6px; border: none; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 700; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-shapes" style="font-size:0.95rem;"></i> Chế độ Khối GUI
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline" id="btn-mode-code" onclick="switchScriptMode('code')" style="padding: 6px 16px; font-size: 0.8rem; border-radius: 6px; border: none; background: transparent; color: var(--text-secondary); transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                            <i class="fa-solid fa-code" style="font-size:0.95rem;"></i> Chế độ Mã JS
+                        </button>
+                    </div>
+                </div>
+
+                <!-- VÙNG BIÊN TẬP GUI BLOCKS (MẶC ĐỊNH HIỂN THỊ) -->
+                <div class="form-section" id="gui-script-editor">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <label style="font-weight: 700; color: #a5b4fc; margin-bottom: 0; font-size: 0.92rem;"><i class="fa-solid fa-list-check"></i> Các bước hành động trực quan</label>
+                        <button type="button" class="btn btn-sm btn-secondary" onclick="addScriptStepRow()" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 6px;">
+                            <i class="fa-solid fa-plus"></i> Thêm hành động
+                        </button>
+                    </div>
+                    <div id="script-steps-container" style="display: flex; flex-direction: column; gap: 10px; max-height: 350px; overflow-y: auto; padding-right: 5px;">
+                        <!-- Các dòng bước hành động sẽ được chèn vào đây bởi JS -->
+                    </div>
+                </div>
+
+                <!-- VÙNG BIÊN TẬP CODE JS (MẶC ĐỊNH ẨN) -->
+                <div class="form-section" id="code-script-editor" style="display: none; position: relative;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                        <label style="font-weight: 600;"><i class="fa-solid fa-code"></i> Mã nguồn JavaScript (Puppeteer)</label>
+                        <div class="code-snippets" style="display: flex; gap: 4px;">
+                            <button type="button" class="btn btn-sm btn-outline" onclick="insertCodeSnippet('goto')" title="Mở trang web mới">Mở URL</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="insertCodeSnippet('click')" title="Nhấp chuột trái vào phần tử">Click</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="insertCodeSnippet('type')" title="Nhập ký tự vào ô nhập">Gõ chữ</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="insertCodeSnippet('wait')" title="Tạm dừng chờ">Chờ</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="insertCodeSnippet('fill_register')" title="Tự động điền thông tin đăng ký">Đăng ký thông minh</button>
+                            <button type="button" class="btn btn-sm btn-outline" onclick="insertCodeSnippet('extension_control')" title="Mẫu kịch bản điều khiển Tiện ích (Extension Control)">Điều khiển Tiện ích</button>
+                        </div>
+                    </div>
+                    <div class="editor-wrapper">
+                        <div class="editor-line-numbers" id="editor-line-numbers">
+                            <span>1</span>
+                        </div>
+                        <textarea id="script-js-code" oninput="handleEditorInput()" onscroll="syncEditorScroll()" placeholder="// Nhập mã JavaScript Puppeteer của bạn tại đây...&#10;// Biến được cung cấp sẵn: page, browser, puppeteer, logInfo, logWarning, logError, setTimeout, fillRegister, clickRight, clickXY, clickRightXY, hover, socialMessage, socialReplyUnread, socialReplyComment, socialReaction&#10;&#10;await page.goto('https://google.com', { waitUntil: 'load' });&#10;logInfo('Đã mở trang chủ Google');"></textarea>
+                        
+                        <!-- Dropdown gợi ý Autocomplete -->
+                        <div id="autocomplete-suggestions" class="autocomplete-suggestions"></div>
+                    </div>
+                    <!-- Khung báo lỗi cú pháp thời gian thực -->
+                    <div id="code-syntax-error" class="syntax-error-box">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span id="syntax-error-msg">Không có lỗi cú pháp.</span>
+                    </div>
+                    <div style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px;">
+                        (Mẹo: Bạn có thể viết code async/await trực tiếp. Sử dụng <code>logInfo('tin nhắn')</code> để in log hiển thị ra bảng giám sát log phía dưới).
+                    </div>
+                </div>
+
+                <!-- SECTION CẤU HÌNH THU THẬP TÀI NGUYÊN THEO KỊCH BẢN -->
+                <div class="form-section" style="border-top: 1px dashed rgba(255,255,255,0.06); padding-top: 15px;">
+                    <label style="font-weight: 700; color: #a5b4fc; display: block; margin-bottom: 10px; font-size: 0.92rem;">
+                        <i class="fa-solid fa-cloud-arrow-down"></i> Tùy chọn Lưu Tài nguyên thu được sau khi chạy
+                    </label>
+                    <p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 10px;">
+                        Tự động lấy dữ liệu (text thô) từ các thẻ CSS Selector được cấu hình bên dưới sau khi hoàn thành kịch bản.
+                    </p>
+                    
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <!-- 1. Username -->
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; width: 180px; margin-bottom: 0; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="s-cap-user-enable" style="width: auto; margin: 0; cursor: pointer;">
+                                <span>Tài khoản (Username)</span>
+                            </label>
+                            <input type="text" id="s-cap-user-selector" placeholder="Thẻ CSS. Ví dụ: input#email hoặc input[name='email']" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- 2. Password -->
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; width: 180px; margin-bottom: 0; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="s-cap-pass-enable" style="width: auto; margin: 0; cursor: pointer;">
+                                <span>Mật khẩu (Password)</span>
+                            </label>
+                            <input type="text" id="s-cap-pass-selector" placeholder="Thẻ CSS. Ví dụ: input[type='password'] hoặc input#pass" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- 3. Email -->
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; width: 180px; margin-bottom: 0; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="s-cap-email-enable" style="width: auto; margin: 0; cursor: pointer;">
+                                <span>Hòm thư (Email)</span>
+                            </label>
+                            <input type="text" id="s-cap-email-selector" placeholder="Thẻ CSS. Ví dụ: span#email-val hoặc input.email" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- 4. Phone -->
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; width: 180px; margin-bottom: 0; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="s-cap-phone-enable" style="width: auto; margin: 0; cursor: pointer;">
+                                <span>Số điện thoại (Phone)</span>
+                            </label>
+                            <input type="text" id="s-cap-phone-selector" placeholder="Thẻ CSS. Ví dụ: input#mobile hoặc div.phone-number" style="flex: 1; padding: 6px 10px; font-size: 0.75rem; border-radius: 4px; border: 1px solid rgba(255,255,255,0.1); background: rgba(0,0,0,0.2); color: white; outline: none; box-sizing: border-box;">
+                        </div>
+
+                        <!-- 5. Cookie -->
+                        <div style="display: flex; align-items: center; gap: 10px; background: rgba(255,255,255,0.02); padding: 8px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.04);">
+                            <label style="display: flex; align-items: center; gap: 6px; font-weight: 600; width: 100%; margin-bottom: 0; cursor: pointer; user-select: none;">
+                                <input type="checkbox" id="s-cap-cookie-enable" style="width: auto; margin: 0; cursor: pointer;">
+                                <span>Lưu Cookie trình duyệt (Không cần CSS Selector)</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeScriptModal()">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary">Lưu kịch bản</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 3: FORM TẠO CHIẾN DỊCH ĐA LUỒNG (CAMPAIGN CREATOR) -->
+    <div class="modal-overlay" id="campaign-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3>Tạo Chiến dịch Đa luồng mới</h3>
+                <button class="close-btn" onclick="closeCampaignModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <form id="campaign-form" onsubmit="handleCampaignSubmit(event)">
+                <div class="form-section">
+                    <div class="form-group">
+                        <label for="c-name">Tên chiến dịch <span class="required">*</span></label>
+                        <input type="text" id="c-name" placeholder="Ví dụ: Chiến dịch cày view 1" required>
+                    </div>
+                    
+                    <div class="form-row">
+                        <div class="form-group col-6">
+                            <label for="c-concurrent">Số luồng chạy cùng lúc (Số luồng song song)</label>
+                            <input type="number" id="c-concurrent" value="2" min="1" max="10">
+                        </div>
+                        <div class="form-group col-6">
+                            <label for="c-total">Tổng số Profile cần chạy</label>
+                            <input type="number" id="c-total" value="5" min="1">
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="c-script-id">Kịch bản sẽ chạy <span class="required">*</span></label>
+                        <select id="c-script-id" required>
+                            <option value="">-- Chọn kịch bản --</option>
+                            <!-- Load scripts dynamically -->
+                        </select>
+                    </div>
+
+                    <div class="form-group" style="margin-top: 15px;">
+                        <label for="c-mode">Chế độ vận hành chiến dịch</label>
+                        <select id="c-mode" onchange="toggleCampaignModeOptions(this.value)">
+                            <option value="0">Tạo profile tạm thời từ cấu hình chung</option>
+                            <option value="3">Tạo profile tạm thời cấu hình random (Info, Thiết bị, Vị trí, Region)</option>
+                            <option value="2">Chỉ chạy luân phiên các bản sao lưu (Backup) hiện có</option>
+                        </select>
+                    </div>
+
+                    <div id="c-random-options-container" class="form-group" style="display: none; margin-top: 15px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <label for="c-random-country" style="font-weight: 600; color: #818cf8;"><i class="fa-solid fa-earth-americas"></i> Chọn Quốc gia / Vùng giả lập (Region):</label>
+                        <select id="c-random-country" style="margin-top: 6px; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(0,0,0,0.2); color: white; width: 100%;">
+                            <option value="random">-- Chọn quốc gia Ngẫu nhiên --</option>
+                            <option value="VN">Việt Nam (VN)</option>
+                            <option value="US">Mỹ (US)</option>
+                            <option value="JP">Nhật Bản (JP)</option>
+                            <option value="KR">Hàn Quốc (KR)</option>
+                            <option value="GB">Anh (GB)</option>
+                            <option value="DE">Đức (DE)</option>
+                            <option value="FR">Pháp (FR)</option>
+                        </select>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
+                            👉 Trình duyệt sẽ tự động giả lập thông tin thiết bị (User-Agent, Độ phân giải), Múi giờ (Timezone) và Tọa độ GPS (Vị trí địa lý) ngẫu nhiên khớp với quốc gia bạn chọn.
+                        </p>
+                    </div>
+
+                    <div class="form-row" style="margin-top: 15px;">
+                        <div class="form-group col-6">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="c-skip-dead" style="width: auto;"> Lập tức bỏ qua các backup có proxy Die
+                            </label>
+                        </div>
+                        <div class="form-group col-6">
+                            <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer;">
+                                <input type="checkbox" id="c-replace-dead" style="width: auto;"> Tự động thay proxy Live khác khi proxy Die
+                            </label>
+                        </div>
+                    </div>
+                    <div class="form-group" style="margin-top: 10px;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 600; cursor: pointer; color: #a5b4fc;">
+                            <input type="checkbox" id="c-save-created-accounts" style="width: auto;"> Lưu thông tin tài khoản đã tạo từ luồng hành động (Nick | Pass | Mail | Phone | Cookie)
+                        </label>
+                    </div>
+                </div>
+
+                <div class="form-section">
+                    <h4><i class="fa-solid fa-list-ol"></i> Danh sách Proxy sử dụng xoay vòng</h4>
+                    
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; color: #cbd5e1;">
+                            <input type="checkbox" id="c-use-api-proxy" onchange="toggleCampaignProxySource(this)" style="width: auto;"> Sử dụng API Proxy xoay vòng của bên thứ 3
+                        </label>
+                    </div>
+                    
+                    <div id="c-api-proxy-container" style="display: none; margin-bottom: 15px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="c-api-proxy-type">Loại API Proxy</label>
+                                <select id="c-api-proxy-type" style="padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(0,0,0,0.2); color: white; width: 100%;">
+                                    <option value="minproxy">MinProxy</option>
+                                    <option value="tmproxy">TMProxy</option>
+                                    <option value="tinosoft">Tinosoft</option>
+                                    <option value="custom">API Custom (GET URL)</option>
+                                </select>
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="c-api-proxy-key">API Key hoặc API URL</label>
+                                <input type="text" id="c-api-proxy-key" placeholder="Nhập API Key hoặc URL xoay IP..." style="width: 100%;">
+                            </div>
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
+                            👉 Hệ thống sẽ tự động gọi API để lấy IP/cấu hình proxy mới trước khi khởi chạy mỗi luồng.
+                        </p>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label class="checkbox-label" style="display: flex; align-items: center; gap: 8px; font-weight: 500; cursor: pointer; color: #f472b6;">
+                            <input type="checkbox" id="c-use-gateway-router" onchange="toggleCampaignGatewayRouter(this)" style="width: auto;"> Kết hợp Gateway Router (Virtual Router / Soft Router)
+                        </label>
+                    </div>
+                    
+                    <div id="c-gateway-router-container" style="display: none; margin-bottom: 15px; background: rgba(255,255,255,0.02); padding: 12px; border-radius: 6px; border: 1px solid var(--border-color);">
+                        <div class="form-group">
+                            <label for="c-gateway-router-url">Địa chỉ API Gateway Router</label>
+                            <input type="text" id="c-gateway-router-url" value="http://127.0.0.1:8080" placeholder="Ví dụ: http://127.0.0.1:8080" style="width: 100%;">
+                        </div>
+                        <p style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 6px; line-height: 1.4;">
+                            👉 Khi bật, luồng sẽ gọi API của Gateway Router để cấu hình/định tuyến card mạng giả trên máy tính kết nối tới Server Proxy thay vì gán trực tiếp proxy vào tham số trình duyệt.
+                        </p>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="c-proxies">Danh sách Proxy tĩnh (Bỏ qua nếu chọn dùng API Proxy bên thứ 3 hoặc Gateway Router không cần thiết lập danh sách tĩnh)</label>
+                        <textarea id="c-proxies" rows="5" placeholder="103.82.23.41:8080&#10;103.82.23.42:8080&#10;socks5://110.23.12.54:1080"></textarea>
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeCampaignModal()">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-primary">Lưu chiến dịch</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 4: AUTOMATION DEMO MODAL -->
+    <div class="modal-overlay" id="automation-modal">
+        <div class="modal-card modal-sm">
+            <div class="modal-header">
+                <h3>Kịch bản Tự động hóa như người thật</h3>
+                <button class="close-btn" onclick="closeAutomationModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body">
+                <input type="hidden" id="automation-profile-id">
+                <p style="margin-bottom: 15px; font-size: 0.9rem; color: var(--text-secondary);">
+                    Mô phỏng gõ phím ngẫu nhiên, di chuyển chuột đường cong và cuộn trang Google Search.
+                </p>
+                <div class="form-group">
+                    <label for="auto-keyword">Từ khóa tìm kiếm</label>
+                    <input type="text" id="auto-keyword" value="thời tiết Hà Nội hôm nay" required>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeAutomationModal()">Hủy</button>
+                <button type="button" class="btn btn-primary" onclick="submitAutomation()">Bắt đầu chạy</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: PUPPETEER DIAGNOSTIC MODAL -->
+    <div class="modal-overlay" id="puppeteer-diagnostic-modal">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-stethoscope" style="color: #10b981; margin-right: 8px;"></i> Chẩn đoán Điều khiển Trình duyệt Puppeteer v1.2.0</h3>
+                <button class="close-btn" onclick="closePuppeteerDiagnosticModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 20px 30px;">
+                <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; line-height: 1.4;">
+                    Tiến hành chẩn đoán tự động kịch bản 6 bước (Khởi chạy, Kết nối CDP, Mở URL, Nhập liệu mô phỏng, Tương tác cuộn, và Chụp màn hình) để xác thực độ ổn định của profile.
+                </p>
+                <div class="form-group">
+                    <label style="font-weight: 600; color: #a5b4fc; margin-bottom: 6px;"><i class="fa-solid fa-terminal"></i> Nhật ký chẩn đoán thời gian thực:</label>
+                    <div id="diagnostic-logs-box" style="height: 200px; overflow-y: auto; background: rgba(0,0,0,0.3); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.8rem; color: #34d399; white-space: pre-wrap; line-height: 1.4; border-left: 3px solid #10b981;">Đang chờ kết nối...</div>
+                </div>
+                <div id="diagnostic-screenshot-box" style="display: none; margin-top: 15px; text-align: center; border: 1px solid var(--border-color); border-radius: 8px; padding: 10px; background: rgba(0,0,0,0.2);">
+                    <p style="font-size: 0.8rem; color: #a5b4fc; font-weight: 600; margin-bottom: 8px; text-align: left;"><i class="fa-regular fa-image"></i> Ảnh chụp màn hình chẩn đoán kết quả:</p>
+                    <img id="diagnostic-screenshot-img" src="" style="max-width: 100%; max-height: 250px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1); box-shadow: 0 4px 12px rgba(0,0,0,0.4);">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closePuppeteerDiagnosticModal()" style="width: 100%; padding: 10px;">Đóng bảng chẩn đoán</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 6: CHI TIẾT & CHẨN ĐOÁN TIỆN ÍCH NÂNG CAO (EXTENSION DETAILS & DIAGNOSTICS) -->
+    <div class="modal-overlay" id="extension-details-modal">
+        <div class="modal-card" style="max-width: 800px; width: 90%;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-puzzle-piece" style="color: #6366f1; margin-right: 8px;"></i> Cấu hình & Chẩn đoán Tiện ích: <span id="ext-modal-name">Tải...</span></h3>
+                <button class="close-btn" onclick="closeExtensionDetailsModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <div class="modal-body" style="padding: 15px 25px;">
+                <!-- Tab Headers -->
+                <div class="tab-header" style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <button class="tab-btn active" id="ext-tab-btn-config" onclick="switchExtTab('config')">
+                        <i class="fa-solid fa-sliders"></i> Gán Hồ sơ & Cấu hình JSON
+                    </button>
+                    <button class="tab-btn" id="ext-tab-btn-diagnose" onclick="switchExtTab('diagnose')">
+                        <i class="fa-solid fa-stethoscope"></i> Chẩn đoán Tĩnh & Logs Chạy thực tế
+                    </button>
+                </div>
+
+                <!-- Tab 1: Gán Hồ Sơ & Cấu Hình -->
+                <div class="ext-tab-content" id="ext-tab-pane-config">
+                    <!-- Cấu hình mặc định (1 cho tất cả) -->
+                    <div class="form-section" style="margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; font-size: 0.95rem; color: #a5b4fc;"><i class="fa-solid fa-globe"></i> Cấu hình Mặc định (Áp dụng 1 cho tất cả các Profile)</h4>
+                        <div class="form-group" style="display: flex; flex-direction: column; gap: 8px;">
+                            <label for="ext-global-config-json">Cấu hình JSON mặc định:</label>
+                            <div style="display: flex; gap: 8px; width: 100%;">
+                                <textarea id="ext-global-config-json" rows="3" placeholder='{"key": "value"}' style="flex-grow: 1; font-family: monospace; font-size: 0.8rem; padding: 8px; border-radius: 6px; border: 1px solid var(--border-color); background-color: rgba(0,0,0,0.25); color: #818cf8; resize: vertical; box-sizing: border-box;"></textarea>
+                                <button type="button" class="btn btn-secondary" style="height: fit-content; align-self: center;" onclick="openExtConfigGuiForGlobal()"><i class="fa-solid fa-pen-to-square"></i> Cấu hình GUI</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Bảng gán Profile hàng loạt -->
+                    <div class="form-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 0.95rem; color: #a5b4fc;"><i class="fa-solid fa-users-gear"></i> Gán vào các Hồ sơ (Profiles) & Cài đặt riêng</h4>
+                            <input type="text" id="ext-profile-search" oninput="filterExtProfileList()" placeholder="Tìm kiếm profile..." style="width: 200px; padding: 6px 10px; border-radius: 4px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.2); color: white; font-size: 0.8rem; outline: none;">
+                        </div>
+                        
+                        <div class="table-responsive" style="max-height: 250px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background-color: rgba(0,0,0,0.15);">
+                            <table style="width: 100%; border-collapse: collapse; font-size: 0.82rem;">
+                                <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 10; border-bottom: 1px solid var(--border-color);">
+                                    <tr>
+                                        <th style="width: 50px; text-align: center; padding: 8px;"><input type="checkbox" id="ext-select-all-profiles" onchange="toggleSelectAllExtProfiles(this.checked)" style="cursor: pointer;"></th>
+                                        <th style="padding: 8px; text-align: left;">Tên Hồ Sơ (Profile)</th>
+                                        <th style="padding: 8px; text-align: left;">Đường dẫn dữ liệu của Profile</th>
+                                        <th style="padding: 8px; text-align: left; width: 280px;">Cấu hình riêng (JSON / GUI)</th>
+                                        <th style="padding: 8px; text-align: center; width: 100px;">Hành động</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="ext-profile-mapping-body">
+                                    <!-- Nạp danh sách qua JS -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tab 2: Chẩn Đoán & Logs -->
+                <div class="ext-tab-content" id="ext-tab-pane-diagnose" style="display: none;">
+                    <!-- Phần 1: Chẩn đoán tĩnh -->
+                    <div class="form-section" style="margin-bottom: 20px;">
+                        <h4 style="margin-top: 0; font-size: 0.95rem; color: #a5b4fc;"><i class="fa-solid fa-magnifying-glass-chart"></i> Chẩn đoán Tĩnh (Trạng thái file & thư mục)</h4>
+                        <div id="ext-static-diagnostic-container" style="display: flex; flex-direction: column; gap: 8px;">
+                            <!-- JS load checks -->
+                        </div>
+                    </div>
+
+                    <!-- Phần 2: Logs thực tế & đề xuất sửa lỗi -->
+                    <div class="form-section">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                            <h4 style="margin: 0; font-size: 0.95rem; color: #a5b4fc;"><i class="fa-solid fa-terminal"></i> Nhật ký lỗi tiện ích khi chạy & Chẩn đoán lỗi (Độc lập)</h4>
+                            <select id="ext-log-profile-select" onchange="loadExtLogsForProfile()" style="padding: 4px 8px; border-radius: 4px; border: 1px solid var(--border-color); background: rgba(0,0,0,0.25); color: white; font-size: 0.8rem; outline: none; cursor: pointer;">
+                                <option value="">-- Chọn Profile đang chạy --</option>
+                            </select>
+                        </div>
+                        
+                        <div id="ext-runtime-log-box" style="height: 150px; overflow-y: auto; background: rgba(0,0,0,0.35); border: 1px solid var(--border-color); border-radius: 6px; padding: 10px; font-family: monospace; font-size: 0.78rem; color: #a5b4fc; white-space: pre-wrap; line-height: 1.4; border-left: 3px solid #818cf8; margin-bottom: 12px; box-sizing: border-box;">Đang chờ chọn Profile hoặc không có log hoạt động nào...</div>
+                        
+                        <div id="ext-recommendations-container" style="display: none; background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.15); border-radius: 6px; padding: 12px; border-left: 4px solid #ef4444;">
+                            <h5 style="color: #f87171; margin-top: 0; margin-bottom: 6px; font-size: 0.85rem;"><i class="fa-solid fa-circle-exclamation"></i> PHÂN TÍCH LỖI VÀ ĐỀ XUẤT CÁCH KHẮC PHỤC TỰ ĐỘNG:</h5>
+                            <ul id="ext-recommendations-list" style="margin: 0; padding-left: 20px; font-size: 0.8rem; color: var(--text-secondary); line-height: 1.4;">
+                                <!-- JS load recommendations -->
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-secondary" onclick="closeExtensionDetailsModal()">Đóng lại</button>
+                <button type="button" class="btn btn-primary" id="btn-save-ext-details" onclick="saveExtensionDetails()">Lưu tất cả cấu hình</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 7: BIÊN TẬP CẤU HÌNH TIỆN ÍCH DẠNG GUI (EXTENSION GUI CONFIG EDITOR) -->
+    <div class="modal-overlay" id="ext-config-gui-modal" style="z-index: 2000;">
+        <div class="modal-card" style="max-width: 600px; width: 90%;">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gears" style="color: #6366f1; margin-right: 8px;"></i> Biên tập cấu hình GUI Tiện ích</h3>
+                <button class="close-btn" onclick="closeExtConfigGuiModal()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="modal-body" style="padding: 15px 25px;">
+                <p id="ext-gui-target-desc" style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px; font-weight: 500;"></p>
+                
+                <div style="display: flex; gap: 8px; margin-bottom: 15px;">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="addExtGuiConfigRow()"><i class="fa-solid fa-plus"></i> Thêm tham số</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="triggerImportExtGuiJson()"><i class="fa-solid fa-file-import"></i> Nhập từ file JSON</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="exportExtGuiJson()"><i class="fa-solid fa-file-export"></i> Xuất ra file JSON</button>
+                    <input type="file" id="import-ext-json-file" style="display: none;" onchange="importExtGuiJson(event)" accept=".json">
+                </div>
+
+                <div class="table-responsive" style="max-height: 300px; overflow-y: auto; border: 1px solid var(--border-color); border-radius: 6px; background-color: rgba(0,0,0,0.15);">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 0.85rem;">
+                        <thead style="position: sticky; top: 0; background: var(--bg-card); z-index: 10; border-bottom: 1px solid var(--border-color);">
+                            <tr>
+                                <th style="padding: 8px; text-align: left;">Tên tham số (Key)</th>
+                                <th style="padding: 8px; text-align: left;">Giá trị (Value)</th>
+                                <th style="padding: 8px; text-align: center; width: 80px;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ext-config-gui-body">
+                            <!-- Nạp danh sách qua JS -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 15px 25px; border-top: 1px solid var(--border-color);">
+                <button type="button" class="btn btn-secondary" onclick="closeExtConfigGuiModal()">Hủy bỏ</button>
+                <button type="button" class="btn btn-primary" onclick="applyExtConfigGui()">Áp dụng</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/countries.js"></script>
+    <script src="/static/main.js"></script>
+</body>
+</html>

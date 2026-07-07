@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Form Đăng Ký Kiểm Thử</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .form-container {
+            background-color: #1e293b;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.5);
+            width: 400px;
+        }
+        h2 {
+            margin-top: 0;
+            color: #38bdf8;
+            text-align: center;
+        }
+        .form-group {
+            margin-bottom: 15px;
+            position: relative;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            color: #94a3b8;
+        }
+        input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            color: white;
+            border-radius: 6px;
+            box-sizing: border-box;
+            font-size: 0.95rem;
+            transition: all 0.3s;
+        }
+        input:focus {
+            outline: none;
+            border-color: #38bdf8;
+            box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.2);
+        }
+        /* Style báo lỗi đỏ */
+        input.invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+        .error-message {
+            color: #ef4444;
+            font-size: 0.8rem;
+            margin-top: 5px;
+            display: none;
+        }
+        /* Autocomplete gợi ý địa chỉ */
+        .autocomplete-items {
+            position: absolute;
+            border: 1px solid #475569;
+            background-color: #0f172a;
+            border-bottom: none;
+            border-top: none;
+            z-index: 99;
+            top: 100%;
+            left: 0;
+            right: 0;
+            border-radius: 0 0 6px 6px;
+            max-height: 150px;
+            overflow-y: auto;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3);
+            display: none;
+        }
+        .autocomplete-items div {
+            padding: 10px;
+            cursor: pointer;
+            border-bottom: 1px solid #475569;
+        }
+        .autocomplete-items div:hover {
+            background-color: #1e293b;
+            color: #38bdf8;
+        }
+        .autocomplete-active {
+            background-color: #1e293b !important;
+            color: #38bdf8 !important;
+        }
+        button {
+            width: 100%;
+            padding: 12px;
+            background-color: #38bdf8;
+            color: #0f172a;
+            font-weight: bold;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 10px;
+            transition: background-color 0.3s;
+        }
+        button:hover {
+            background-color: #0ea5e9;
+        }
+        .success-box {
+            display: none;
+            background-color: #10b981;
+            color: white;
+            padding: 15px;
+            border-radius: 6px;
+            text-align: center;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="form-container">
+        <h2>Đăng Ký Tài Khoản</h2>
+        <form id="regForm" onsubmit="event.preventDefault(); showOtpSection();">
+            <div class="form-group">
+                <label for="firstname">Họ</label>
+                <input type="text" id="firstname" name="firstname" placeholder="Nhập họ..." required>
+            </div>
+            <div class="form-group">
+                <label for="lastname">Tên</label>
+                <input type="text" id="lastname" name="lastname" placeholder="Nhập tên..." required>
+            </div>
+            <div class="form-group">
+                <label for="username">Tên đăng nhập (Username)</label>
+                <input type="text" id="username" name="username" placeholder="Chỉ chứa chữ và số..." required>
+                <div id="username-error" class="error-message">Tên đăng nhập đã tồn tại hoặc không hợp lệ!</div>
+            </div>
+            <div class="form-group">
+                <label for="password">Mật khẩu</label>
+                <input type="password" id="password" name="password" placeholder="Đúng 10 ký tự..." required>
+            </div>
+            <div class="form-group">
+                <label for="email">Địa chỉ Email</label>
+                <input type="email" id="email" name="email" placeholder="Nhập email nhận OTP..." required>
+            </div>
+            <div class="form-group">
+                <label for="address">Địa chỉ</label>
+                <input type="text" id="address" name="address" placeholder="Nhập địa chỉ..." autocomplete="off" required>
+                <div id="autocomplete-list" class="autocomplete-items"></div>
+            </div>
+            <button type="submit">Đăng Ký Ngay</button>
+        </form>
+
+        <div id="otpSection" style="display: none;">
+            <h2>Xác Thực OTP Email</h2>
+            <p style="font-size: 0.85rem; color: #94a3b8; text-align: center; margin-bottom: 20px;">
+                Mã xác thực OTP đã được gửi đến email của bạn. Vui lòng nhập mã để hoàn tất.
+            </p>
+            <div class="form-group">
+                <label for="email-otp">Mã xác thực OTP</label>
+                <input type="text" id="email-otp" placeholder="Nhập mã OTP..." maxlength="6">
+                <div id="otp-error" class="error-message">Mã OTP không chính xác hoặc đã hết hạn!</div>
+            </div>
+            <button type="button" id="btn-verify-otp">Xác Nhận OTP</button>
+        </div>
+
+        <div id="successBox" class="success-box">Đăng ký tài khoản thành công!</div>
+    </div>
+
+    <script>
+        // Giả lập kiểm tra trùng username (Nếu username chứa ký tự đặc biệt hoặc số lần gõ đầu tiên thì báo lỗi)
+        const usernameInput = document.getElementById('username');
+        const usernameError = document.getElementById('username-error');
+        
+        let attemptsCount = 0;
+        usernameInput.addEventListener('blur', function() {
+            const val = usernameInput.value;
+            // Giả lập: Báo đỏ ở lần thử đầu tiên hoặc nếu chứa khoảng cách/kí tự đặc biệt để thử thách AI sửa lỗi
+            const hasSpecial = /[^a-zA-Z0-9]/.test(val);
+            if (val && (attemptsCount < 1 || hasSpecial)) {
+                usernameInput.classList.add('invalid');
+                usernameError.style.display = 'block';
+                attemptsCount++;
+            } else {
+                usernameInput.classList.remove('invalid');
+                usernameError.style.display = 'none';
+            }
+        });
+
+        // Giả lập autocomplete địa chỉ
+        const addressInput = document.getElementById('address');
+        const listDiv = document.getElementById('autocomplete-list');
+        const suggestions = [
+            "120 Cầu Giấy, Phường Quan Hoa, Quận Cầu Giấy, Hà Nội",
+            "456 Lê Lợi, Phường Bến Thành, Quận 1, TP. Hồ Chí Minh",
+            "789 Nguyễn Văn Linh, Phường Bình Hiên, Quận Hải Châu, Đà Nẵng",
+            "350 5th Ave, New York, NY 10118, USA",
+            "1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA"
+        ];
+
+        addressInput.addEventListener('input', function() {
+            const val = this.value;
+            listDiv.innerHTML = '';
+            if (!val) {
+                listDiv.style.display = 'none';
+                return;
+            }
+            
+            const filtered = suggestions.filter(s => s.toLowerCase().includes(val.toLowerCase()));
+            if (filtered.length === 0) {
+                listDiv.style.display = 'none';
+                return;
+            }
+
+            listDiv.style.display = 'block';
+            filtered.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.innerHTML = item;
+                if (index === 0) div.classList.add('autocomplete-active'); // active cái đầu tiên
+                div.addEventListener('click', function() {
+                    addressInput.value = item;
+                    listDiv.style.display = 'none';
+                });
+                listDiv.appendChild(div);
+            });
+        });
+
+        // Hỗ trợ di chuyển phím lên xuống và Enter để chọn autocomplete
+        let currentFocus = 0;
+        addressInput.addEventListener('keydown', function(e) {
+            let x = listDiv.querySelectorAll('div');
+            if (x.length === 0) return;
+            
+            if (e.keyCode === 40) { // Mũi tên xuống
+                currentFocus++;
+                addActive(x);
+            } else if (e.keyCode === 38) { // Mũi tên lên
+                currentFocus--;
+                addActive(x);
+            } else if (e.keyCode === 13) { // Phím Enter
+                e.preventDefault();
+                if (currentFocus > -1) {
+                    if (x[currentFocus]) x[currentFocus].click();
+                }
+            }
+        });
+
+        function addActive(x) {
+            if (!x) return false;
+            removeActive(x);
+            if (currentFocus >= x.length) currentFocus = 0;
+            if (currentFocus < 0) currentFocus = (x.length - 1);
+            x[currentFocus].classList.add("autocomplete-active");
+        }
+
+        function removeActive(x) {
+            for (let i = 0; i < x.length; i++) {
+                x[i].classList.remove("autocomplete-active");
+            }
+        }
+
+        document.addEventListener("click", function (e) {
+            if (e.target !== addressInput) {
+                listDiv.style.display = 'none';
+            }
+        });
+
+        function showOtpSection() {
+            const email = document.getElementById('email').value;
+            
+            // Ẩn form đăng ký
+            document.getElementById('regForm').style.display = 'none';
+            // Hiện phần nhập OTP
+            document.getElementById('otpSection').style.display = 'block';
+            
+            // Gọi webhook MailManager (cổng 5001) để mô phỏng nhận OTP mail
+            fetch('http://127.0.0.1:5001/api/webhook/receive-email', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    from: 'system-noreply@test.com',
+                    to: email,
+                    subject: 'Mã xác thực OTP tài khoản của bạn',
+                    text: `Mã OTP của bạn là: 887766. Vui lòng nhập mã này để xác thực tài khoản.`
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                console.log('Mô phỏng gửi OTP mail thành công:', data);
+            })
+            .catch(err => {
+                console.error('Lỗi khi gọi API OTP MailManager:', err);
+            });
+        }
+
+        document.getElementById('btn-verify-otp').addEventListener('click', function() {
+            const otpInput = document.getElementById('email-otp');
+            const otpError = document.getElementById('otp-error');
+            const otpVal = otpInput.value.trim();
+            
+            if (otpVal === '887766') {
+                otpInput.classList.remove('invalid');
+                otpError.style.display = 'none';
+                document.getElementById('otpSection').style.display = 'none';
+                document.getElementById('successBox').style.display = 'block';
+            } else {
+                otpInput.classList.add('invalid');
+                otpError.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

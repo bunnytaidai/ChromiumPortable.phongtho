@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anti-Mail Manager | Quản lý Email tạm thời đa luồng</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="logo">
+                <i class="fa-solid fa-envelope-open-text logo-icon"></i>
+                <h1>Anti-Mail Manager</h1>
+                <span class="badge">v1.0.0</span>
+            </div>
+            <div class="header-actions">
+                <div class="tunnel-control-bar" id="tunnel-bar">
+                    <span class="tunnel-status-label"><i class="fa-solid fa-circle-nodes"></i> Tunnel: <strong id="tunnel-status-val" class="status-disconnected">Đã tắt</strong></span>
+                    <button class="btn btn-primary btn-sm" id="btn-toggle-tunnel"><i class="fa-solid fa-play"></i> Bật kết nối</button>
+                    <div id="tunnel-url-container" style="display: none;">
+                        <span class="tunnel-url-text" id="tunnel-url-val"></span>
+                        <button class="btn-icon-only" id="btn-copy-tunnel-url" title="Sao chép URL nhận mail"><i class="fa-regular fa-copy"></i></button>
+                    </div>
+                </div>
+                <button class="btn btn-secondary" id="btn-settings" title="Cấu hình hệ thống">
+                    <i class="fa-solid fa-gear"></i> Cấu hình
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="app-main">
+            <!-- Cột trái: Quản lý danh sách email -->
+            <section class="sidebar">
+                <div class="sidebar-header">
+                    <h2>Danh sách Email</h2>
+                    <div class="sidebar-buttons">
+                        <button class="btn btn-primary btn-sm" id="btn-create-random" title="Tạo email ngẫu nhiên">
+                            <i class="fa-solid fa-wand-magic-sparkles"></i> Tạo nhanh
+                        </button>
+                        <button class="btn btn-success btn-sm" id="btn-create-custom" title="Tự đặt tên email">
+                            <i class="fa-solid fa-keyboard"></i> Tạo tùy chỉnh
+                        </button>
+                    </div>
+                </div>
+                <div class="email-list" id="email-list-container">
+                    <!-- Các email con sẽ hiển thị ở đây -->
+                    <div class="empty-state">Chưa có email nào được tạo. Hãy nhấn "Tạo nhanh" hoặc "Tạo tùy chỉnh" phía trên!</div>
+                </div>
+            </section>
+
+            <!-- Cột phải: Chi tiết hòm thư được chọn -->
+            <section class="mail-viewer">
+                <div id="no-active-mail" class="empty-viewer">
+                    <i class="fa-solid fa-inbox empty-viewer-icon"></i>
+                    <h3>Không có email nào được chọn</h3>
+                    <p>Hãy chọn một địa chỉ email ở danh sách bên trái hoặc tạo mới để xem hòm thư.</p>
+                </div>
+                
+                <div id="active-mail-details" class="mail-details-container" style="display: none;">
+                    <!-- Panel điều khiển Email hiện tại -->
+                    <div class="control-panel">
+                        <div class="email-display-box">
+                            <div class="email-meta">Thư của bạn đã được tạo</div>
+                            <div class="email-address-wrapper">
+                                <h3 id="current-email-address">example@domain.com</h3>
+                                <button class="btn-icon-only" id="btn-copy-email" title="Sao chép địa chỉ email">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="action-buttons-group">
+                            <button class="control-btn btn-blue" id="btn-copy-address">
+                                <i class="fa-solid fa-copy"></i>
+                                <span>Sao chép</span>
+                            </button>
+                            <button class="control-btn btn-green" id="btn-toggle-active">
+                                <i class="fa-solid fa-power-off"></i>
+                                <span id="toggle-status-text">Kích hoạt</span>
+                            </button>
+                            <button class="control-btn btn-orange" id="btn-keep-email">
+                                <i class="fa-solid fa-box-archive"></i>
+                                <span id="keep-status-text">Giữ mail</span>
+                            </button>
+                            <button class="control-btn btn-red" id="btn-delete-email">
+                                <i class="fa-solid fa-trash-can"></i>
+                                <span>Xóa</span>
+                            </button>
+                        </div>
+
+                        <div class="expiry-box">
+                            <div class="expiry-label">Trạng thái sống</div>
+                            <div class="expiry-time" id="current-email-expiry">60 Phút 00 Giây</div>
+                            <button class="btn-link" id="btn-renew-email">Gia hạn thêm 1 giờ</button>
+                        </div>
+                    </div>
+
+                    <!-- Danh sách thư đến -->
+                    <div class="inbox-section">
+                        <div class="inbox-header">
+                            <div class="inbox-title">
+                                <i class="fa-solid fa-envelope-circle-check"></i> Hộp thư đến
+                            </div>
+                            <div class="inbox-actions">
+                                <button class="btn btn-success btn-sm" id="btn-compose-mail">
+                                    <i class="fa-solid fa-paper-plane"></i> Sáng tác
+                                </button>
+                                <button class="btn btn-secondary btn-sm" id="btn-refresh-messages">
+                                    <i class="fa-solid fa-arrows-rotate"></i> Làm mới danh sách
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="message-list-wrapper">
+                            <table class="message-table">
+                                <thead>
+                                    <tr>
+                                        <th style="width: 45%;">TIÊU ĐỀ TIN NHẮN</th>
+                                        <th style="width: 25%;">NGƯỜI GỬI</th>
+                                        <th style="width: 15%; text-align: center;">MÃ OTP</th>
+                                        <th style="width: 15%; text-align: right;">NHẬN LÚC</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="message-list-body">
+                                    <!-- Tin nhắn sẽ hiển thị ở đây -->
+                                    <tr class="no-messages-row">
+                                        <td colspan="4" style="text-align: center; padding: 40px 10px;">
+                                            Không có tin nhắn trong hộp thư đến của bạn vào lúc này. Bạn có thể làm mới trang để kiểm tra lại.
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Modal Cấu hình -->
+    <div class="modal" id="modal-settings">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-gears"></i> Cấu hình hệ thống</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="settings-form">
+                    <!-- Cấu hình tên miền -->
+                    <div class="form-section">
+                        <h4><i class="fa-solid fa-globe"></i> Cấu hình nhận Email</h4>
+                        <div class="form-group">
+                            <label for="setting-domain">Tên miền của bạn (Domain riêng):</label>
+                            <input type="text" id="setting-domain" name="domain" placeholder="example.com" required>
+                            <small class="form-help">Tên miền đã trỏ MX về Cloudflare và có bật cấu hình Email Routing.</small>
+                        </div>
+                        <div class="form-group checkbox-group">
+                            <input type="checkbox" id="setting-use-api-fallback" name="use_api_fallback" value="1">
+                            <label for="setting-use-api-fallback">Sử dụng API Email tạm thời bên thứ 3 (Mail.tm) làm dự phòng</label>
+                        </div>
+                        <small class="form-help">Nếu bật dự phòng, khi bạn tạo email nếu không có domain riêng hoặc bị lỗi kết nối, hệ thống sẽ tự sinh mail ảo miễn phí từ dịch vụ Mail.tm.</small>
+                    </div>
+
+                    <!-- Cấu hình SMTP gửi thư -->
+                    <div class="form-section">
+                        <h4><i class="fa-solid fa-server"></i> Cấu hình SMTP (Để gửi email đi)</h4>
+                        <div class="form-row">
+                            <div class="form-group col-8">
+                                <label for="setting-smtp-host">SMTP Host:</label>
+                                <input type="text" id="setting-smtp-host" name="smtp_host" placeholder="smtp.gmail.com">
+                            </div>
+                            <div class="form-group col-4">
+                                <label for="setting-smtp-port">SMTP Port:</label>
+                                <input type="number" id="setting-smtp-port" name="smtp_port" placeholder="587">
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group col-6">
+                                <label for="setting-smtp-user">SMTP Username (Email chính):</label>
+                                <input type="email" id="setting-smtp-user" name="smtp_user" placeholder="yourmail@gmail.com">
+                            </div>
+                            <div class="form-group col-6">
+                                <label for="setting-smtp-pass">SMTP Password (Mật khẩu ứng dụng):</label>
+                                <input type="password" id="setting-smtp-pass" name="smtp_pass" placeholder="••••••••••••••••">
+                            </div>
+                        </div>
+                        <small class="form-help">Cấu hình này dùng khi bạn bấm nút "Sáng tác" để gửi thư đi. Với Gmail, bạn phải dùng "Mật khẩu ứng dụng" (App Password) thay cho mật khẩu chính.</small>
+                    </div>
+
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary close-modal-btn">Hủy</button>
+                        <button type="submit" class="btn btn-primary">Lưu cấu hình</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Xem Chi Tiết Thư -->
+    <div class="modal" id="modal-view-mail">
+        <div class="modal-content modal-lg">
+            <div class="modal-header">
+                <h3 id="view-mail-subject">Tiêu đề thư</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="mail-info-bar">
+                    <div><strong>Từ:</strong> <span id="view-mail-from">sender@example.com</span></div>
+                    <div><strong>Đến:</strong> <span id="view-mail-to">recipient@yourdomain.com</span></div>
+                    <div><strong>Thời gian:</strong> <span id="view-mail-time">19/06/2026 12:00</span></div>
+                </div>
+                <div id="view-mail-otp-badge" class="otp-highlight-box" style="display: none;">
+                    Mã xác nhận (OTP) phát hiện được: <strong id="view-mail-otp-val">123456</strong>
+                </div>
+                <div class="mail-body-content">
+                    <!-- Sử dụng iframe để cô lập HTML nội dung thư tránh xung đột CSS -->
+                    <iframe id="mail-content-iframe" src="about:blank" width="100%" height="450px" frameborder="0"></iframe>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary close-modal-btn">Đóng</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Soạn Thư (Sáng tác) -->
+    <div class="modal" id="modal-compose">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="fa-solid fa-paper-plane"></i> Soạn email mới</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="compose-form">
+                    <div class="form-group">
+                        <label for="compose-from">Người gửi (Email phụ hiện tại):</label>
+                        <input type="text" id="compose-from" name="from" readonly>
+                    </div>
+                    <div class="form-group">
+                        <label for="compose-to">Người nhận (To):</label>
+                        <input type="email" id="compose-to" name="to" placeholder="recipient@example.com" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="compose-subject">Tiêu đề (Subject):</label>
+                        <input type="text" id="compose-subject" name="subject" placeholder="Nhập tiêu đề thư" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="compose-text">Nội dung thư:</label>
+                        <textarea id="compose-text" name="text" rows="8" placeholder="Nhập nội dung thư..." required></textarea>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary close-modal-btn">Hủy</button>
+                        <button type="submit" class="btn btn-primary" id="btn-submit-send">
+                            <i class="fa-solid fa-share"></i> Gửi ngay
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Tạo Email Tùy Chỉnh -->
+    <div class="modal" id="modal-create-custom">
+        <div class="modal-content modal-sm">
+            <div class="modal-header">
+                <h3>Tạo Email tùy chỉnh</h3>
+                <button class="close-modal">&times;</button>
+            </div>
+            <div class="modal-body">
+                <form id="custom-email-form">
+                    <div class="form-group">
+                        <label for="custom-prefix">Tên hòm thư mong muốn:</label>
+                        <div class="input-addon-group">
+                            <input type="text" id="custom-prefix" placeholder="vi_du_ten_mail" required pattern="^[a-zA-Z0-9_\-\.]+$">
+                            <span class="addon-text" id="custom-domain-addon">@yourdomain.com</span>
+                        </div>
+                        <small class="form-help">Chỉ nhập ký tự chữ, số, dấu gạch ngang, gạch dưới hoặc dấu chấm.</small>
+                    </div>
+                    <div class="form-actions">
+                        <button type="button" class="btn btn-secondary close-modal-btn">Hủy</button>
+                        <button type="submit" class="btn btn-success">Khởi tạo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="/static/main.js"></script>
+</body>
+</html>
