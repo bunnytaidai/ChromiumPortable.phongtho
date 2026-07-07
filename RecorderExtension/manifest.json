@@ -1,0 +1,28 @@
+{
+  "manifest_version": 3,
+  "name": "Anti-Profile Action Recorder",
+  "version": "2.10.2",
+  "description": "Ghi hình tương tác người dùng trên trình duyệt và tự động biên dịch sang kịch bản JavaScript Puppeteer.",
+  "permissions": [
+    "activeTab",
+    "storage",
+    "scripting"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["<all_urls>"],
+      "js": ["content.js"],
+      "run_at": "document_start",
+      "all_frames": true
+    }
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:5000/*"
+  ]
+}

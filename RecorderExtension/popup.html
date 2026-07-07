@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <title>Anti-Profile Recorder Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-color: #0b0f19;
+            --bg-card: rgba(17, 24, 39, 0.75);
+            --bg-glass: rgba(31, 41, 55, 0.4);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --text-primary: #f3f4f6;
+            --text-secondary: #9ca3af;
+            --accent-color: #6366f1;
+            --accent-glow: rgba(99, 102, 241, 0.3);
+            --success-color: #10b981;
+            --success-glow: rgba(16, 185, 129, 0.3);
+            --danger-color: #ef4444;
+            --warning-color: #f59e0b;
+            --magic-color: #ec4899;
+            --magic-glow: rgba(236, 72, 153, 0.3);
+        }
+
+        body {
+            width: 360px;
+            margin: 0;
+            padding: 16px;
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-primary);
+            box-sizing: border-box;
+            overflow-x: hidden;
+        }
+
+        /* Tiêu đề chính */
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 14px;
+            border-bottom: 1px solid var(--border-color);
+            padding-bottom: 10px;
+        }
+
+        .logo-area {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .logo-icon {
+            color: var(--accent-color);
+            font-size: 1.4rem;
+            animation: pulse-glow 2s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            from { filter: drop-shadow(0 0 2px var(--accent-color)); }
+            to { filter: drop-shadow(0 0 8px var(--accent-color)); }
+        }
+
+        .logo-area h3 {
+            margin: 0;
+            font-size: 1.05rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(to right, #a5b4fc, #ec4899);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .conn-badge {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            background: rgba(255, 255, 255, 0.04);
+            padding: 4px 10px;
+            border-radius: 20px;
+            border: 1px solid var(--border-color);
+        }
+
+        .badge-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background-color: var(--danger-color);
+            box-shadow: 0 0 6px var(--danger-color);
+        }
+
+        .badge-dot.active {
+            background-color: var(--success-color);
+            box-shadow: 0 0 8px var(--success-color);
+        }
+
+        /* Thẻ nội dung (Cards) */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 12px;
+            backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .card-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-top: 0;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* Form lựa chọn */
+        .select-wrapper {
+            position: relative;
+        }
+
+        select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.25);
+            color: var(--text-primary);
+            font-size: 0.85rem;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        select:focus {
+            border-color: var(--accent-color);
+        }
+
+        /* Nút gạt điều khiển động cơ */
+        .engine-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .engine-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px dashed rgba(255, 255, 255, 0.04);
+        }
+
+        .engine-item:last-child {
+            border-bottom: none;
+        }
+
+        .engine-info {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .engine-name {
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .engine-desc {
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+        }
+
+        .engine-status {
+            font-size: 0.72rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.02);
+            color: var(--text-secondary);
+        }
+
+        .engine-status.online {
+            color: var(--success-color);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        /* Nút gạt Switch */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px;
+            height: 24px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-color: #374151;
+            transition: .3s;
+            border-radius: 34px;
+            border: 1px solid var(--border-color);
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #e5e7eb;
+            transition: .3s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: var(--accent-color);
+            box-shadow: 0 0 6px var(--accent-glow);
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(20px);
+            background-color: white;
+        }
+
+        input:disabled + .slider {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Nút bấm hành động */
+        .btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 11px;
+            border: none;
+            border-radius: 8px;
+            font-family: inherit;
+            font-size: 0.88rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: white;
+            box-sizing: border-box;
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none !important;
+        }
+
+        .btn-record {
+            background: linear-gradient(135deg, var(--accent-color), #4f46e5);
+            box-shadow: 0 4px 12px var(--accent-glow);
+        }
+
+        .btn-record:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--accent-glow);
+        }
+
+        .btn-magic {
+            background: linear-gradient(135deg, var(--magic-color), #db2777);
+            box-shadow: 0 4px 12px var(--magic-glow);
+        }
+
+        .btn-magic:hover:not(:disabled) {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px var(--magic-glow);
+        }
+
+        .btn-pause {
+            background-color: var(--warning-color);
+        }
+
+        .btn-stop {
+            background-color: var(--danger-color);
+        }
+
+        /* Bảng log và Xem trước */
+        .log-section {
+            margin-top: 10px;
+        }
+
+        .tab-header {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 8px;
+            background: rgba(0, 0, 0, 0.2);
+            padding: 3px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 6px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .tab-btn.active {
+            background: var(--bg-glass);
+            color: white;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+        }
+
+        .log-box {
+            font-family: 'Consolas', 'Courier New', monospace;
+            font-size: 0.72rem;
+            height: 120px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.35);
+            border-radius: 8px;
+            padding: 8px;
+            border: 1px solid var(--border-color);
+            white-space: pre-wrap;
+            word-break: break-all;
+            box-sizing: border-box;
+        }
+
+        #system-log-content {
+            color: #34d399; /* Màu xanh lục bảo */
+        }
+
+        #steps-preview-content {
+            color: #fbbf24; /* Màu vàng cam */
+        }
+
+        .footer {
+            text-align: center;
+            font-size: 0.7rem;
+            color: var(--text-secondary);
+            margin-top: 10px;
+            border-top: 1px solid var(--border-color);
+            padding-top: 8px;
+        }
+
+        /* CSS cho các card kịch bản hành động */
+        .step-card {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .step-card:hover {
+            border-color: var(--accent-color);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            font-weight: 600;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding-bottom: 4px;
+        }
+
+        .step-title {
+            color: #a5b4fc;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .step-actions {
+            display: flex;
+            gap: 6px;
+        }
+
+        .step-btn {
+            background: none;
+            border: none;
+            color: var(--text-secondary);
+            cursor: pointer;
+            font-size: 0.75rem;
+            padding: 2px 4px;
+            border-radius: 3px;
+            transition: all 0.15s;
+        }
+
+        .step-btn:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .step-btn.btn-delete:hover {
+            color: var(--danger-color);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        .step-body {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .step-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .step-row label {
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            width: 48px;
+            flex-shrink: 0;
+        }
+
+        .step-input {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 3px 6px;
+            font-size: 0.7rem;
+            font-family: inherit;
+            outline: none;
+        }
+
+        .step-input:focus {
+            border-color: var(--accent-color);
+        }
+
+        .step-select {
+            flex: 1;
+            background: rgba(0, 0, 0, 0.25);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            color: var(--text-primary);
+            padding: 2px 4px;
+            font-size: 0.7rem;
+            font-family: inherit;
+            outline: none;
+            cursor: pointer;
+        }
+
+        .step-api-toggle {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-top: 2px;
+            cursor: pointer;
+            font-size: 0.68rem;
+            color: var(--text-secondary);
+            user-select: none;
+        }
+
+        .step-api-toggle input {
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .step-api-panel {
+            background: rgba(0, 0, 0, 0.15);
+            border: 1px dashed rgba(255, 255, 255, 0.05);
+            border-radius: 6px;
+            padding: 6px;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Tiêu đề và kết nối -->
+    <div class="header">
+        <div class="logo-area">
+            <i class="fa-solid fa-wand-magic-sparkles logo-icon"></i>
+            <h3>Anti-Profile Recorder</h3>
+        </div>
+        <div class="conn-badge">
+            <span class="badge-dot" id="conn-dot"></span>
+            <span id="conn-text">Kết nối Backend...</span>
+        </div>
+    </div>
+
+    <!-- Chọn Profile -->
+    <div class="card">
+        <div class="card-title" id="profile-card-title">
+            <i class="fa-solid fa-id-card"></i> Hồ sơ đang mở
+        </div>
+        <div id="profile-display-info" style="font-weight: 600; font-size: 0.95rem; color: #a5b4fc; padding: 6px 10px; background: rgba(255,255,255,0.03); border-radius: 6px; border: 1px solid var(--border-color); display: none;">
+            Đang xác định...
+        </div>
+        <div class="select-wrapper" id="profile-select-wrapper">
+            <select id="profile-select">
+                <option value="">-- Chọn Profile --</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Động cơ điều khiển -->
+    <div class="card">
+        <div class="card-title">
+            <i class="fa-solid fa-gears"></i> Động cơ điều khiển (Engines)
+        </div>
+        <div class="engine-grid">
+            <!-- Gạt MCP Server -->
+            <div class="engine-item">
+                <div class="engine-info">
+                    <div class="engine-name">
+                        <i class="fa-solid fa-network-wired" style="color: var(--accent-color)"></i>
+                        MCP Server
+                    </div>
+                    <div class="engine-desc">AI Agent kết nối điều khiển</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="engine-status" id="mcp-status">🔴 Tắt</span>
+                    <label class="switch">
+                        <input type="checkbox" id="mcp-toggle" disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Gạt Puppeteer Engine -->
+            <div class="engine-item">
+                <div class="engine-info">
+                    <div class="engine-name">
+                        <i class="fa-solid fa-robot" style="color: var(--magic-color)"></i>
+                        Puppeteer Engine
+                    </div>
+                    <div class="engine-desc">Giả lập nhấp chuột & OTP</div>
+                </div>
+                <div style="display: flex; align-items: center; gap: 8px;">
+                    <span class="engine-status" id="puppeteer-status">🔴 Tắt</span>
+                    <label class="switch">
+                        <input type="checkbox" id="puppeteer-toggle" disabled>
+                        <span class="slider"></span>
+                    </label>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Cấu hình Kết nối MCP Chrome & DevTools -->
+    <div class="card" id="mcp-config-card" style="display: none; border-left: 3px solid var(--accent-color);">
+        <div class="card-title" style="color: #a5b4fc; display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+            <span><i class="fa-brands fa-chrome"></i> Cấu hình kết nối MCP Chrome</span>
+            <span id="mcp-cdp-status" style="font-size: 0.65rem; background: rgba(239, 68, 68, 0.15); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); padding: 1px 6px; border-radius: 4px; font-weight: bold;">🔴 Đứt kết nối</span>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 8px; font-size: 0.78rem;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <div style="background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <div style="color: var(--text-secondary); font-size: 0.68rem; margin-bottom: 2px;">Cổng Debug (DevTools):</div>
+                    <div id="mcp-debug-port" style="font-family: monospace; font-weight: bold; color: var(--success-color);">Chờ...</div>
+                </div>
+                <div style="background: rgba(255,255,255,0.02); padding: 6px; border-radius: 6px; border: 1px solid var(--border-color);">
+                    <div style="color: var(--text-secondary); font-size: 0.68rem; margin-bottom: 2px;">Cổng MCP Server API:</div>
+                    <div id="mcp-server-port" style="font-family: monospace; font-weight: bold; color: var(--magic-color);">Chờ...</div>
+                </div>
+            </div>
+            
+            <div style="display: flex; align-items: center; justify-content: space-between; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.04);">
+                <div style="display: flex; flex-direction: column;">
+                    <span style="font-weight: 500;">Tự động Smart Wait (DevTools)</span>
+                    <span style="font-size: 0.65rem; color: var(--text-secondary);">Chờ mạng rảnh & DOM ổn định</span>
+                </div>
+                <label class="switch" style="width: 36px; height: 20px;">
+                    <input type="checkbox" id="mcp-smart-wait-toggle" checked>
+                    <span class="slider" style="border-radius: 20px;"></span>
+                </label>
+            </div>
+
+            <div>
+                <div style="font-size: 0.68rem; color: var(--text-secondary); margin-bottom: 4px; font-weight: 600; display: flex; align-items: center; justify-content: space-between;">
+                    <span>DEVTOOLS CONSOLE LOGS</span>
+                    <span style="cursor: pointer; color: var(--accent-color);" id="btn-clear-console">Xóa logs</span>
+                </div>
+                <div id="mcp-console-monitor" style="font-family: monospace; font-size: 0.65rem; background: rgba(0,0,0,0.3); border-radius: 6px; padding: 6px; height: 50px; overflow-y: auto; color: #a5b4fc; border: 1px solid var(--border-color); line-height: 1.3;">
+                    Chờ khởi động kết nối Puppeteer...
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 6px; margin-top: 2px;">
+                <input type="text" id="mcp-cdp-command" placeholder="Lệnh CDP (ví dụ: Page.reload)" style="flex: 1; background: rgba(0,0,0,0.2); border: 1px solid var(--border-color); border-radius: 4px; color: white; padding: 4px 6px; font-size: 0.72rem; outline: none; transition: border-color 0.2s;">
+                <button id="mcp-cdp-execute-btn" style="background: var(--accent-color); border: none; color: white; border-radius: 4px; padding: 4px 10px; font-size: 0.72rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 4px;">
+                    <i class="fa-solid fa-paper-plane"></i> Gửi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Khu vực nút bấm tự động hóa -->
+    <div class="card" style="display: flex; flex-direction: column; gap: 10px;">
+        <!-- Nút ghi hình -->
+        <button class="btn btn-record" id="btn-record-action" disabled>
+            <i class="fa-solid fa-circle"></i> Bắt đầu ghi hình
+        </button>
+
+        <!-- Nhóm nút khi đang ghi -->
+        <div id="recording-controls" style="display: none; width: 100%;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn btn-pause" id="btn-pause-action">
+                    <i class="fa-solid fa-pause"></i> Tạm dừng
+                </button>
+                <button class="btn btn-stop" id="btn-stop-action">
+                    <i class="fa-solid fa-circle-check"></i> Hoàn tất
+                </button>
+            </div>
+        </div>
+
+        <!-- Nút ma thuật tự động điền & xác minh OTP -->
+        <button class="btn btn-magic" id="btn-magic-action" disabled>
+            <i class="fa-solid fa-wand-magic-sparkles"></i> Tự động điền & Xác minh OTP
+        </button>
+    </div>
+
+    <!-- Bảng Log báo cáo -->
+    <div class="card" style="margin-bottom: 0;">
+        <div class="tab-header">
+            <button class="tab-btn active" id="tab-system">
+                <i class="fa-solid fa-terminal"></i> Nhật ký hệ thống
+            </button>
+            <button class="tab-btn" id="tab-steps">
+                <i class="fa-solid fa-list-ol"></i> Kịch bản ghi hình
+            </button>
+        </div>
+        
+        <div class="log-section">
+            <!-- Nội dung Log hệ thống -->
+            <div class="log-box" id="system-log-content">Chưa kết nối tới thiết bị...</div>
+            
+            <!-- Nội dung Xem trước kịch bản (Ban đầu ẩn) -->
+            <div class="log-box" id="steps-preview-content" style="display: none; padding: 4px; overflow-y: auto;">
+                <div id="steps-list" style="display: flex; flex-direction: column; gap: 8px;">
+                    Chưa có bước kịch bản nào được ghi lại...
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        Được thiết kế cho Chromium Portable v2.10.2
+    </div>
+
+    <script src="popup.js"></script>
+</body>
+</html>
